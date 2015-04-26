@@ -14,6 +14,7 @@ import java.util.Map;
 
 import org.eclipse.smarthome.config.core.ConfigDescriptionParameter;
 import org.eclipse.smarthome.config.core.ConfigDescriptionParameter.Type;
+import org.eclipse.smarthome.config.core.ConfigDescriptionParameterBuilder;
 import org.eclipse.smarthome.config.core.FilterCriteria;
 import org.eclipse.smarthome.config.core.ParameterOption;
 import org.eclipse.smarthome.config.xml.util.ConverterAttributeMapValidator;
@@ -35,6 +36,7 @@ import com.thoughtworks.xstream.io.HierarchicalStreamReader;
  *
  * @author Michael Grammling - Initial Contribution
  * @author Alex Tugarev - Extended for options and filter criteria
+ * @author Chris Jackson - Modified to use config parameter builder
  */
 public class ConfigDescriptionParameterConverter extends GenericUnmarshaller<ConfigDescriptionParameter> {
 
@@ -109,8 +111,10 @@ public class ConfigDescriptionParameterConverter extends GenericUnmarshaller<Con
         List<FilterCriteria> filterCriteria = (List<FilterCriteria>) valueMap.getObject("filter");
 
         // create object
-        configDescriptionParam = new ConfigDescriptionParameter(name, type, min, max, step, patternString, required,
-                readOnly, multiple, parameterContext, defaultValue, label, description, options, filterCriteria);
+        configDescriptionParam = ConfigDescriptionParameterBuilder.create(name, type).withMinimum(min).withMaximum(max)
+                .withStepSize(step).withPattern(patternString).withRequired(required).withReadOnly(readOnly)
+                .withMultiple(multiple).withContext(parameterContext).withDefault(defaultValue).withLabel(label)
+                .withDescription(description).withOptions(options).withFilterCriteria(filterCriteria).build();
 
         return configDescriptionParam;
     }

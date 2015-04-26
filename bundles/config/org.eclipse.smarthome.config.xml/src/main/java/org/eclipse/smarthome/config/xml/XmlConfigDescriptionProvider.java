@@ -18,6 +18,7 @@ import java.util.Map.Entry;
 
 import org.eclipse.smarthome.config.core.ConfigDescription;
 import org.eclipse.smarthome.config.core.ConfigDescriptionParameter;
+import org.eclipse.smarthome.config.core.ConfigDescriptionParameterBuilder;
 import org.eclipse.smarthome.config.core.ConfigDescriptionProvider;
 import org.eclipse.smarthome.config.core.ParameterOption;
 import org.eclipse.smarthome.config.core.i18n.ConfigDescriptionI18nUtil;
@@ -36,6 +37,7 @@ import org.osgi.framework.Bundle;
  * @author Michael Grammling - Initial Contribution
  * @author Dennis Nobel - Added locale support
  * @author Alex Tugarev - Extended for pattern and options
+ * @author Chris Jackson - Modify to use config parameter builder
  */
 public class XmlConfigDescriptionProvider implements ConfigDescriptionProvider {
 
@@ -218,10 +220,10 @@ public class XmlConfigDescriptionProvider implements ConfigDescriptionProvider {
         List<ParameterOption> options = getLocalizedOptions(parameter.getOptions(), bundle, configDescriptionURI,
                 parameterName, locale);
 
-        ConfigDescriptionParameter localizedParameter = new ConfigDescriptionParameter(parameterName,
-                parameter.getType(), parameter.getMinimum(), parameter.getMaximum(), parameter.getStepSize(), pattern,
-                parameter.isRequired(), parameter.isReadOnly(), parameter.isMultiple(), parameter.getContext(),
-                parameter.getDefault(), label, description, options, parameter.getFilterCriteria());
+        ConfigDescriptionParameter localizedParameter = ConfigDescriptionParameterBuilder.create(parameterName, parameter.getType()).withMinimum(parameter.getMinimum()).withMaximum(parameter.getMaximum())
+                .withStepSize(parameter.getStepSize()).withPattern(pattern).withRequired(parameter.isRequired()).withReadOnly(parameter.isReadOnly())
+                .withMultiple(parameter.isMultiple()).withContext(parameter.getContext()).withDefault(parameter.getDefault()).withLabel(label)
+                .withDescription(description).withOptions(options).withFilterCriteria(parameter.getFilterCriteria()).build();
 
         return localizedParameter;
     }
