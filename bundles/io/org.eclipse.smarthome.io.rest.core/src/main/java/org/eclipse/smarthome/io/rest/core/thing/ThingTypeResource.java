@@ -27,6 +27,7 @@ import org.eclipse.smarthome.config.core.ConfigDescription;
 import org.eclipse.smarthome.config.core.ConfigDescriptionParameter;
 import org.eclipse.smarthome.config.core.ConfigDescriptionRegistry;
 import org.eclipse.smarthome.config.core.FilterCriteria;
+import org.eclipse.smarthome.config.core.ParameterGroup;
 import org.eclipse.smarthome.config.core.ParameterOption;
 import org.eclipse.smarthome.core.thing.ThingTypeUID;
 import org.eclipse.smarthome.core.thing.type.BridgeType;
@@ -42,6 +43,7 @@ import org.eclipse.smarthome.io.rest.core.thing.beans.ChannelDefinitionBean;
 import org.eclipse.smarthome.io.rest.core.thing.beans.ChannelGroupDefinitionBean;
 import org.eclipse.smarthome.io.rest.core.thing.beans.ConfigDescriptionParameterBean;
 import org.eclipse.smarthome.io.rest.core.thing.beans.FilterCriteriaBean;
+import org.eclipse.smarthome.io.rest.core.thing.beans.ParameterGroupBean;
 import org.eclipse.smarthome.io.rest.core.thing.beans.ParameterOptionBean;
 import org.eclipse.smarthome.io.rest.core.thing.beans.ThingTypeBean;
 
@@ -100,10 +102,11 @@ public class ThingTypeResource implements RESTResource {
     public List<ConfigDescriptionParameterBean> getConfigDescriptionParameterBeans(URI configDescriptionURI,
             Locale locale) {
 
-        ConfigDescription configDescription = configDescriptionRegistry.getConfigDescription(configDescriptionURI, locale);
+        ConfigDescription configDescription = configDescriptionRegistry.getConfigDescription(configDescriptionURI,
+                locale);
         if (configDescription != null) {
-            List<ConfigDescriptionParameterBean> configDescriptionParameterBeans = new ArrayList<>(
-                    configDescription.getParameters().size());
+            List<ConfigDescriptionParameterBean> configDescriptionParameterBeans = new ArrayList<>(configDescription
+                    .getParameters().size());
             for (ConfigDescriptionParameter configDescriptionParameter : configDescription.getParameters()) {
                 ConfigDescriptionParameterBean configDescriptionParameterBean = new ConfigDescriptionParameterBean(
                         configDescriptionParameter.getName(), configDescriptionParameter.getType(),
@@ -111,15 +114,17 @@ public class ThingTypeResource implements RESTResource {
                         configDescriptionParameter.getStepSize(), configDescriptionParameter.getPattern(),
                         configDescriptionParameter.isRequired(), configDescriptionParameter.isReadOnly(),
                         configDescriptionParameter.isMultiple(), configDescriptionParameter.getContext(),
-                        String.valueOf(configDescriptionParameter.getDefault()),
-                        configDescriptionParameter.getLabel(), configDescriptionParameter.getDescription(),
+                        String.valueOf(configDescriptionParameter.getDefault()), configDescriptionParameter.getLabel(),
+                        configDescriptionParameter.getDescription(),
                         createBeansForOptions(configDescriptionParameter.getOptions()),
-                        createBeansForCriteria(configDescriptionParameter.getFilterCriteria()));
+                        createBeansForCriteria(configDescriptionParameter.getFilterCriteria()),
+                        configDescriptionParameter.getGroup(), configDescriptionParameter.getAdvanced(),
+                        configDescriptionParameter.getLimitToOptions());
                 configDescriptionParameterBeans.add(configDescriptionParameterBean);
             }
             return configDescriptionParameterBeans;
         }
-       
+
         return null;
     }
 
@@ -155,8 +160,8 @@ public class ThingTypeResource implements RESTResource {
                 getConfigDescriptionParameterBeans(thingType.getConfigDescriptionURI(), locale),
                 convertToChannelDefinitionBeans(thingType.getChannelDefinitions()),
                 convertToChannelGroupDefinitionBeans(thingType.getChannelGroupDefinitions()),
-                thingType.getSupportedBridgeTypeUIDs(), thingType.getProperties(), 
-                thingType instanceof BridgeType);
+                thingType.getSupportedBridgeTypeUIDs(), thingType.getProperties(), thingType instanceof BridgeType,
+                convertToParameterGroupBeans(thingType.getConfigDescriptionURI(), locale));
     }
 
     private List<ChannelGroupDefinitionBean> convertToChannelGroupDefinitionBeans(
@@ -198,5 +203,22 @@ public class ThingTypeResource implements RESTResource {
 
         return thingTypeBeans;
     }
-    
+
+    private List<ParameterGroupBean> convertToParameterGroupBeans(URI configDescriptionURI, Locale locale) {
+
+        ConfigDescription configDescription = configDescriptionRegistry.getConfigDescription(configDescriptionURI,
+                locale);
+        List<ParameterGroupBean> parameterGroupBeans = new ArrayList<>();
+        if (configDescription != null) {
+            
+            List<ParameterGroup> parameterGroups = configDescription.getGroups();
+            for (ParameterGroup parameterGroup : parameterGroups) {
+                parameterGroupBeans.add(new ParameterGroupBean(parameterGroup.getName(), parameterGroup.getContext(),
+                        parameterGroup.getLabel(), parameterGroup.getDescription()));
+            }
+        }
+
+        return parameterGroupBeans;
+    }
+
 }

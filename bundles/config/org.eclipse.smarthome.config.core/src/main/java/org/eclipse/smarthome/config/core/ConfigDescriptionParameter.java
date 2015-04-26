@@ -21,7 +21,7 @@ import java.util.List;
  * @author Michael Grammling - Initial Contribution
  * @author Alex Tugarev - Added options, filter criteria, and more parameter
  *         attributes
- * @author Chris Jackson - Added group, limitToOptions, advanced
+ * @author Chris Jackson - Added group, limitToOptions, advanced attributes
  */
 public class ConfigDescriptionParameter {
 
@@ -321,7 +321,7 @@ public class ConfigDescriptionParameter {
      *
      * @return true if the value is limited to the options list
      */
-    public boolean getLimitToOption() {
+    public boolean getLimitToOptions() {
         return this.limitToOptions;
     }
 
