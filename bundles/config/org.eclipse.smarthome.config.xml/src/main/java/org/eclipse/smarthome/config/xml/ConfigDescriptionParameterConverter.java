@@ -36,7 +36,7 @@ import com.thoughtworks.xstream.io.HierarchicalStreamReader;
  *
  * @author Michael Grammling - Initial Contribution
  * @author Alex Tugarev - Extended for options and filter criteria
- * @author Chris Jackson - Modified to use config parameter builder
+ * @author Chris Jackson - Modified to use config parameter builder. Added parameters.
  */
 public class ConfigDescriptionParameterConverter extends GenericUnmarshaller<ConfigDescriptionParameter> {
 
@@ -105,6 +105,10 @@ public class ConfigDescriptionParameterConverter extends GenericUnmarshaller<Con
         String label = valueMap.getString("label");
         String description = valueMap.getString("description");
 
+        String groupId = valueMap.getString("groupId");
+        Boolean advanced = toBoolean(valueMap.getString("advanced"));
+        Boolean freeFormInput = toBoolean(valueMap.getString("freeFormInput"));
+
         // read options and filter criteria
         List<ParameterOption> options = readParameterOptions(valueMap.getObject("options"));
         @SuppressWarnings("unchecked")
@@ -114,7 +118,8 @@ public class ConfigDescriptionParameterConverter extends GenericUnmarshaller<Con
         configDescriptionParam = ConfigDescriptionParameterBuilder.create(name, type).withMinimum(min).withMaximum(max)
                 .withStepSize(step).withPattern(patternString).withRequired(required).withReadOnly(readOnly)
                 .withMultiple(multiple).withContext(parameterContext).withDefault(defaultValue).withLabel(label)
-                .withDescription(description).withOptions(options).withFilterCriteria(filterCriteria).build();
+                .withDescription(description).withOptions(options).withFilterCriteria(filterCriteria)
+                .withGroupId(groupId).withAdvanced(advanced).withFreeFormInput(freeFormInput).build();
 
         return configDescriptionParam;
     }

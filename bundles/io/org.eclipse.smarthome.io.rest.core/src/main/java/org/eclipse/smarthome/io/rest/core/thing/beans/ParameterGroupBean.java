@@ -18,15 +18,17 @@ public class ParameterGroupBean {
 
     public String name;
     public String context;
+    public Boolean advanced;
     public String label;
     public String description;
 
     public ParameterGroupBean() {
     }
 
-    public ParameterGroupBean(String name, String context, String label, String description) {
+    public ParameterGroupBean(String name, String context, Boolean advanced, String label, String description) {
         this.name = name;
         this.context = context;
+        this.advanced = advanced;
         this.label = label;
         this.description = description;
     }

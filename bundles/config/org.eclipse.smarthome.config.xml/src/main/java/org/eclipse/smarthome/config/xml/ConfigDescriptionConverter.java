@@ -14,6 +14,7 @@ import java.util.Map;
 
 import org.eclipse.smarthome.config.core.ConfigDescription;
 import org.eclipse.smarthome.config.core.ConfigDescriptionParameter;
+import org.eclipse.smarthome.config.core.ConfigDescriptionParameterGroup;
 import org.eclipse.smarthome.config.xml.util.ConverterAssertion;
 import org.eclipse.smarthome.config.xml.util.ConverterAttributeMapValidator;
 import org.eclipse.smarthome.config.xml.util.GenericUnmarshaller;
@@ -31,6 +32,7 @@ import com.thoughtworks.xstream.io.HierarchicalStreamReader;
  * This converter converts {@code config-description} XML tags.
  *
  * @author Michael Grammling - Initial Contribution
+ * @author Chris Jackson - Added configuration groups
  */
 public class ConfigDescriptionConverter extends GenericUnmarshaller<ConfigDescription> {
 
@@ -66,11 +68,13 @@ public class ConfigDescriptionConverter extends GenericUnmarshaller<ConfigDescri
         // read values
         List<ConfigDescriptionParameter> configDescriptionParams = (List<ConfigDescriptionParameter>) context
                 .convertAnother(context, List.class);
+        List<ConfigDescriptionParameterGroup> configGroupParams = (List<ConfigDescriptionParameterGroup>) context
+                .convertAnother(context, List.class);
 
         ConverterAssertion.assertEndOfType(reader);
 
         // create object
-        configDescription = new ConfigDescription(uri, configDescriptionParams);
+        configDescription = new ConfigDescription(uri, configDescriptionParams, configGroupParams);
 
         return configDescription;
     }

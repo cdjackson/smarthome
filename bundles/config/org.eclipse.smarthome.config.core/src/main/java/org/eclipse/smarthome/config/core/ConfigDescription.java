@@ -19,7 +19,7 @@ import java.util.List;
  * data itself and is usually used for data validation of the concrete
  * configuration or for supporting user interfaces.
  * <p>
- * The {@link ParameterGroup} provides a method to group parameters to allow
+ * The {@link ConfigDescriptionParameterGroup} provides a method to group parameters to allow
  * the UI to better display the parameter information. This can be left blank
  * for small devices where there are only a few parameters, however devices with
  * larger numbers of parameters can set the group member in the {@link ConfigDescriptionParameter}
@@ -38,7 +38,7 @@ public class ConfigDescription {
 
     private URI uri;
     private List<ConfigDescriptionParameter> parameters;
-    private List<ParameterGroup> groups;
+    private List<ConfigDescriptionParameterGroup> groups;
 
     /**
      * Creates a new instance of this class with the specified parameter.
@@ -76,7 +76,7 @@ public class ConfigDescription {
      *
      * @throws IllegalArgumentException if the URI is null or invalid
      */
-    public ConfigDescription(URI uri, List<ConfigDescriptionParameter> parameters, List<ParameterGroup> groups) {
+    public ConfigDescription(URI uri, List<ConfigDescriptionParameter> parameters, List<ConfigDescriptionParameterGroup> groups) {
         if (uri == null) {
             throw new IllegalArgumentException("The URI must not be null!");
         }
@@ -98,7 +98,7 @@ public class ConfigDescription {
         if (groups != null) {
             this.groups = Collections.unmodifiableList(groups);
         } else {
-            this.groups = Collections.unmodifiableList(new ArrayList<ParameterGroup>(0));
+            this.groups = Collections.unmodifiableList(new ArrayList<ConfigDescriptionParameterGroup>(0));
         }
     }
 
@@ -130,7 +130,7 @@ public class ConfigDescription {
      *
      * @return the list of parameter groups parameter (not null, could be empty)
      */
-    public List<ParameterGroup> getGroups() {
+    public List<ConfigDescriptionParameterGroup> getGroups() {
         return this.groups;
     }
 

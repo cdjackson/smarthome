@@ -8,21 +8,23 @@
 package org.eclipse.smarthome.config.core;
 
 /**
- * The {@link ParameterGroup} specifies information about parameter groups.
+ * The {@link ConfigDescriptionParameterGroup} specifies information about parameter groups.
  * A parameter group is used to group a number of parameters together so they can
  * be displayed together in the UI (eg in a single tab).
  * <p>
- * A {@link ConfigDescriptionParameter} instance must also contain the group name. It should be permissible to use the
- * group name in the {@link ConfigDesctiptionParameter} without supplying a corresponding {@link ParameterGroup} - in
- * this way the UI can group the parameters together, but doesn't have the group information.
+ * A {@link ConfigDescriptionParameter} instance must also contain the groupId. It should be permissible to use the
+ * groupId in the {@link ConfigDesctiptionParameter} without supplying a corresponding
+ * {@link ConfigDescriptionParameterGroup} - in this way the UI can group the parameters together, but doesn't have the
+ * group information.
  *
  * @author Chris Jackson - Initial Contribution
  *
  */
-public class ParameterGroup {
+public class ConfigDescriptionParameterGroup {
 
-    private String name;
+    private String groupId;
     private String context;
+    private boolean advanced;
     private String label;
     private String description;
 
@@ -30,29 +32,33 @@ public class ParameterGroup {
      * Create a Parameter Group. A group is used by the user interface to display groups
      * of parameters together.
      *
-     * @param name
-     *            the group name, used to link the group, to the parameter
+     * @param groupId
+     *            the groupId, used to link the group, to the parameter
      * @param context
      *            a context string. Can be used to provide some context to the group
+     * @param advanced
+     *            a flag that is set to true if this group contains advanced settings
      * @param label
      *            the human readable group label
      * @param description
      *            a description that can be provided to the user
      */
-    public ParameterGroup(String name, String context, String label, String description) {
-        this.name = name;
+    public ConfigDescriptionParameterGroup(String groupId, String context, Boolean advanced, String label,
+            String description) {
+        this.groupId = groupId;
         this.context = context;
+        this.advanced = advanced;
         this.label = label;
         this.description = description;
     }
 
     /**
-     * Get the name of the group.
+     * Get the id of the group.
      *
-     * @return group name as string
+     * @return groupId as string
      */
-    public String getName() {
-        return name;
+    public String getGroupId() {
+        return groupId;
     }
 
     /**
@@ -62,6 +68,15 @@ public class ParameterGroup {
      */
     public String getContext() {
         return context;
+    }
+
+    /**
+     * Gets the advanced flag for this group.
+     *
+     * @return advanced flag - true if the group contains advanced properties
+     */
+    public boolean isAdvanced() {
+        return advanced;
     }
 
     /**
@@ -84,7 +99,8 @@ public class ParameterGroup {
 
     @Override
     public String toString() {
-        return this.getClass().getSimpleName() + " [name=\"" + name + "\", context=\"" + context + "\", label=\""
-                + label + "\"" + label + "\", description=\"" + description + "\"]";
+        return this.getClass().getSimpleName() + " [groupId=\"" + groupId + "\", context=\"" + context
+                + "\", advanced=\"" + advanced + "\", label=\"" + label + "\"" + label + "\", description=\""
+                + description + "\"]";
     }
 }

@@ -27,7 +27,7 @@ import org.eclipse.smarthome.config.core.ConfigDescription;
 import org.eclipse.smarthome.config.core.ConfigDescriptionParameter;
 import org.eclipse.smarthome.config.core.ConfigDescriptionRegistry;
 import org.eclipse.smarthome.config.core.FilterCriteria;
-import org.eclipse.smarthome.config.core.ParameterGroup;
+import org.eclipse.smarthome.config.core.ConfigDescriptionParameterGroup;
 import org.eclipse.smarthome.config.core.ParameterOption;
 import org.eclipse.smarthome.core.thing.ThingTypeUID;
 import org.eclipse.smarthome.core.thing.type.BridgeType;
@@ -118,8 +118,8 @@ public class ThingTypeResource implements RESTResource {
                         configDescriptionParameter.getDescription(),
                         createBeansForOptions(configDescriptionParameter.getOptions()),
                         createBeansForCriteria(configDescriptionParameter.getFilterCriteria()),
-                        configDescriptionParameter.getGroup(), configDescriptionParameter.getAdvanced(),
-                        configDescriptionParameter.getLimitToOptions());
+                        configDescriptionParameter.getGroupId(), configDescriptionParameter.getAdvanced(),
+                        configDescriptionParameter.getFreeFormInput());
                 configDescriptionParameterBeans.add(configDescriptionParameterBean);
             }
             return configDescriptionParameterBeans;
@@ -210,11 +210,12 @@ public class ThingTypeResource implements RESTResource {
                 locale);
         List<ParameterGroupBean> parameterGroupBeans = new ArrayList<>();
         if (configDescription != null) {
-            
-            List<ParameterGroup> parameterGroups = configDescription.getGroups();
-            for (ParameterGroup parameterGroup : parameterGroups) {
-                parameterGroupBeans.add(new ParameterGroupBean(parameterGroup.getName(), parameterGroup.getContext(),
-                        parameterGroup.getLabel(), parameterGroup.getDescription()));
+
+            List<ConfigDescriptionParameterGroup> parameterGroups = configDescription.getGroups();
+            for (ConfigDescriptionParameterGroup parameterGroup : parameterGroups) {
+                parameterGroupBeans.add(new ParameterGroupBean(parameterGroup.getGroupId(),
+                        parameterGroup.getContext(), parameterGroup.isAdvanced(), parameterGroup.getLabel(),
+                        parameterGroup.getDescription()));
             }
         }
 

@@ -6,7 +6,7 @@
 	<xs:element name="config-descriptions">
 		<xs:complexType>
 			<xs:sequence>
-				<xs:element name="config-description" type="config-description:configDescription" minOccurs="0" maxOccurs="unbounded"/>
+				<xs:element name="config-description" type="config-description:configDescription" minOccurs="1" maxOccurs="unbounded"/>
 			</xs:sequence>
 		</xs:complexType>
 	</xs:element>
@@ -28,6 +28,7 @@
 	<xs:complexType name="configDescription">
 		<xs:sequence>
 			<xs:element name="parameter" type="config-description:parameter" minOccurs="0" maxOccurs="unbounded"/>
+			<xs:element name="group" type="config-description:group" minOccurs="0" maxOccurs="unbounded"/>
 		</xs:sequence>
 		<xs:attribute name="uri" type="config-description:uriRestrictionPattern" use="optional"/>
 	</xs:complexType>
@@ -41,7 +42,10 @@
 			<xs:element name="label" type="xs:string" minOccurs="0"/>
 			<xs:element name="description" type="xs:string" minOccurs="0"/>
 			<xs:element name="options" type="config-description:optionsType" minOccurs="0"/>
+			<xs:element name="freeFormInput" type="xs:boolean" minOccurs="0"/>
 			<xs:element name="filter" type="config-description:filterType" minOccurs="0"/>
+			<xs:element name="groupId" type="xs:string" minOccurs="0"/>
+			<xs:element name="advanced" type="xs:boolean" minOccurs="0"/>
 		</xs:all>
 		<xs:attribute name="name" type="xs:string" use="required"/>
 		<xs:attribute name="type" type="config-description:parameterType" use="required"/>
@@ -52,6 +56,16 @@
 		<xs:attribute name="required" type="xs:boolean"/>
 		<xs:attribute name="readOnly" type="xs:boolean"/>
 		<xs:attribute name="multiple" type="xs:boolean"/>
+	</xs:complexType>
+
+	<xs:complexType name="group">
+		<xs:all>
+			<xs:element name="context" type="xs:string" minOccurs="0"/>
+			<xs:element name="label" type="xs:string" minOccurs="0"/>
+			<xs:element name="description" type="xs:string" minOccurs="0"/>
+			<xs:element name="advanced" type="xs:boolean" minOccurs="0"/>
+		</xs:all>
+		<xs:attribute name="groupId" type="xs:string" use="required"/>
 	</xs:complexType>
 
 	<xs:complexType name="optionsType">

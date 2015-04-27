@@ -21,7 +21,7 @@ import java.util.List;
  * @author Michael Grammling - Initial Contribution
  * @author Alex Tugarev - Added options, filter criteria, and more parameter
  *         attributes
- * @author Chris Jackson - Added group, limitToOptions, advanced attributes
+ * @author Chris Jackson - Added groupId, freeFormInput, advanced attributes
  */
 public class ConfigDescriptionParameter {
 
@@ -60,7 +60,7 @@ public class ConfigDescriptionParameter {
     private String name;
     private Type type;
 
-    private String group;
+    private String groupId;
 
     private BigDecimal min;
     private BigDecimal max;
@@ -78,7 +78,7 @@ public class ConfigDescriptionParameter {
     private List<ParameterOption> options = new ArrayList<ParameterOption>();
     private List<FilterCriteria> filterCriteria = new ArrayList<FilterCriteria>();
 
-    private boolean limitToOptions;
+    private boolean freeFormInput;
     private boolean advanced;
 
     /**
@@ -135,13 +135,13 @@ public class ConfigDescriptionParameter {
      * @param options
      *            a list of element definitions of a static selection list
      *            (nullable)
-     * @param group
+     * @param groupId
      *            a string used to group parameters together into logical blocks
      *            so that the UI can display them together
      * @param advanced
      *            specifies if this is an advanced parameter. An advanced parameter
      *            can be hidden in the UI to focus the user on important configuration
-     * @param limitToOptions
+     * @param freeFormInput
      *            specifies that the users input is limited to the options list.
      *            When set to true without options, this should have no affect.
      *            When set to true with options, the user can only select the options from the list
@@ -153,7 +153,7 @@ public class ConfigDescriptionParameter {
     public ConfigDescriptionParameter(String name, Type type, BigDecimal minimum, BigDecimal maximum,
             BigDecimal stepsize, String pattern, Boolean required, Boolean readOnly, Boolean multiple, String context,
             String defaultValue, String label, String description, List<ParameterOption> options,
-            List<FilterCriteria> filterCriteria, String group, Boolean advanced, Boolean limitToOptions)
+            List<FilterCriteria> filterCriteria, String groupId, Boolean advanced, Boolean freeFormInput)
             throws IllegalArgumentException {
 
         if ((name == null) || (name.isEmpty())) {
@@ -166,7 +166,7 @@ public class ConfigDescriptionParameter {
 
         this.name = name;
         this.type = type;
-        this.group = group;
+        this.groupId = groupId;
         this.min = minimum;
         this.max = maximum;
         this.step = stepsize;
@@ -188,7 +188,7 @@ public class ConfigDescriptionParameter {
 
         // To avoid confusion with the UI, only limit to the options, if options are specified
         if (this.options.size() != 0) {
-            this.limitToOptions = limitToOptions;
+            this.freeFormInput = freeFormInput;
         }
 
         if (filterCriteria != null)
@@ -312,8 +312,8 @@ public class ConfigDescriptionParameter {
      *
      * @return a group for the configuration parameter (could be null or empty)
      */
-    public String getGroup() {
-        return this.group;
+    public String getGroupId() {
+        return this.groupId;
     }
 
     /**
@@ -321,8 +321,8 @@ public class ConfigDescriptionParameter {
      *
      * @return true if the value is limited to the options list
      */
-    public boolean getLimitToOptions() {
-        return this.limitToOptions;
+    public boolean getFreeFormInput() {
+        return this.freeFormInput;
     }
 
     /**
@@ -373,6 +373,11 @@ public class ConfigDescriptionParameter {
         sb.append(", ");
         sb.append("type=");
         sb.append(type);
+        if (groupId != null) {
+            sb.append(", ");
+            sb.append("groupId=");
+            sb.append(groupId);
+        }
         if (min != null) {
             sb.append(", ");
             sb.append("min=");

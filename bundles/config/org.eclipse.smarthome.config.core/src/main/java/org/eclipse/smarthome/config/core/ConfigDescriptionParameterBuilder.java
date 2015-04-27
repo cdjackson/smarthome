@@ -24,7 +24,7 @@ public class ConfigDescriptionParameterBuilder {
     private String name;
     private Type type;
 
-    private String group;
+    private String groupId;
 
     private BigDecimal min;
     private BigDecimal max;
@@ -39,7 +39,7 @@ public class ConfigDescriptionParameterBuilder {
     private String label;
     private String description;
 
-    private boolean limitToOptions;
+    private boolean freeFormInput;
     private boolean advanced;
 
     private List<ParameterOption> options = new ArrayList<ParameterOption>();
@@ -196,8 +196,8 @@ public class ConfigDescriptionParameterBuilder {
      *
      * @param options
      */
-    public ConfigDescriptionParameterBuilder withLimitToOptions(Boolean limitToOptions) {
-        this.limitToOptions = limitToOptions;
+    public ConfigDescriptionParameterBuilder withFreeFormInput(Boolean freeFormInput) {
+        this.freeFormInput = freeFormInput;
         return this;
     }
 
@@ -206,8 +206,8 @@ public class ConfigDescriptionParameterBuilder {
      *
      * @param options
      */
-    public ConfigDescriptionParameterBuilder withGroup(String group) {
-        this.group = group;
+    public ConfigDescriptionParameterBuilder withGroupId(String groupId) {
+        this.groupId = groupId;
         return this;
     }
 
@@ -228,7 +228,7 @@ public class ConfigDescriptionParameterBuilder {
      */
     public ConfigDescriptionParameter build() throws IllegalArgumentException {
         return new ConfigDescriptionParameter(name, type, min, max, step, pattern, required, readOnly, multiple,
-                context, defaultValue, label, description, options, filterCriteria, group, advanced, limitToOptions);
+                context, defaultValue, label, description, options, filterCriteria, groupId, advanced, freeFormInput);
     }
 
 }
