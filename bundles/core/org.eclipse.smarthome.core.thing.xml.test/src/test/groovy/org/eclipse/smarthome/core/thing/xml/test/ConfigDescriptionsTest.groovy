@@ -82,7 +82,11 @@ class ConfigDescriptionsTest extends OSGiTest {
         }
         
         def usernameParameter = parameters.find { it.name.equals("username") }
-        assertThat usernameParameter, is(notNullValue())
+		assertThat usernameParameter, is(notNullValue())
+		
+		assertThat userNameParameter.advanced, is(Type.BOOLEAN)
+		assertThat userNameParameter.advanced, is(true)
+
         assertThat usernameParameter.type, is(Type.TEXT)
         usernameParameter.with {
             assertThat context, is("password")
