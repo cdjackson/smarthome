@@ -106,8 +106,8 @@ public class ConfigDescriptionParameterConverter extends GenericUnmarshaller<Con
         String description = valueMap.getString("description");
 
         String groupId = valueMap.getString("groupId");
-        Boolean advanced = toBoolean(valueMap.getString("advanced"));
-        Boolean freeFormInput = toBoolean(valueMap.getString("freeFormInput"));
+        Boolean advanced = valueMap.getBoolean("advanced", false);
+        Boolean limitToOptions = valueMap.getBoolean("limitToOptions", true);
 
         // read options and filter criteria
         List<ParameterOption> options = readParameterOptions(valueMap.getObject("options"));
@@ -119,7 +119,8 @@ public class ConfigDescriptionParameterConverter extends GenericUnmarshaller<Con
                 .withStepSize(step).withPattern(patternString).withRequired(required).withReadOnly(readOnly)
                 .withMultiple(multiple).withContext(parameterContext).withDefault(defaultValue).withLabel(label)
                 .withDescription(description).withOptions(options).withFilterCriteria(filterCriteria)
-                .withGroupId(groupId).withAdvanced(advanced).withFreeFormInput(freeFormInput).build();
+                .withGroupId(groupId).withAdvanced(advanced).withFreeFormInput(limitToOptions)
+                .build();
 
         return configDescriptionParam;
     }

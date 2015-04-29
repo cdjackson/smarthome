@@ -15,36 +15,34 @@ import com.thoughtworks.xstream.converters.UnmarshallingContext;
 import com.thoughtworks.xstream.io.HierarchicalStreamReader;
 
 /**
- * The {@link ConfigDescriptionParameterGroupConverter} creates a {@link ConfigDescriptionParameterGroup} instance from
- * a {@code option} XML node.
+ * The {@link ConfigDescriptionParameterGroupConverter} creates a
+ * {@link ConfigDescriptionParameterGroup} instance from a {@code option} XML
+ * node.
  *
  * @author Chris Jackson - Initial Contribution
  */
-public class ConfigDescriptionParameterGroupConverter extends GenericUnmarshaller<ConfigDescriptionParameterGroup> {
+public class ConfigDescriptionParameterGroupConverter extends
+		GenericUnmarshaller<ConfigDescriptionParameterGroup> {
 
-    public ConfigDescriptionParameterGroupConverter() {
-        super(ConfigDescriptionParameterGroup.class);
-    }
+	public ConfigDescriptionParameterGroupConverter() {
+		super(ConfigDescriptionParameterGroup.class);
+	}
 
-    private Boolean toBoolean(String val) {
-        if (val == null) {
-            return null;
-        }
-        return new Boolean(val);
-    }
+	@Override
+	public Object unmarshal(HierarchicalStreamReader reader,
+			UnmarshallingContext marshallingContext) {
+		String groupId = reader.getAttribute("groupId");
 
-    @Override
-    public Object unmarshal(HierarchicalStreamReader reader, UnmarshallingContext marshallingContext) {
-        String groupId = reader.getAttribute("groupId");
+		// Read values
+		ConverterValueMap valueMap = new ConverterValueMap(reader,
+				marshallingContext);
 
-        // Read values
-        ConverterValueMap valueMap = new ConverterValueMap(reader, marshallingContext);
+		String context = valueMap.getString("context");
+		String description = valueMap.getString("description");
+		String label = valueMap.getString("label");
+		Boolean advanced = valueMap.getBoolean("advanced", false);
 
-        String context = valueMap.getString("context");
-        String description = valueMap.getString("description");
-        String label = valueMap.getString("label");
-        Boolean advanced = toBoolean(valueMap.getString("advanced"));
-
-        return new ConfigDescriptionParameterGroup(groupId, context, advanced, label, description);
-    }
+		return new ConfigDescriptionParameterGroup(groupId, context, advanced,
+				label, description);
+	}
 }

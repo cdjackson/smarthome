@@ -78,7 +78,7 @@ public class ConfigDescriptionParameter {
     private List<ParameterOption> options = new ArrayList<ParameterOption>();
     private List<FilterCriteria> filterCriteria = new ArrayList<FilterCriteria>();
 
-    private boolean freeFormInput;
+    private boolean limitToOptions;
     private boolean advanced;
 
     /**
@@ -153,7 +153,7 @@ public class ConfigDescriptionParameter {
     public ConfigDescriptionParameter(String name, Type type, BigDecimal minimum, BigDecimal maximum,
             BigDecimal stepsize, String pattern, Boolean required, Boolean readOnly, Boolean multiple, String context,
             String defaultValue, String label, String description, List<ParameterOption> options,
-            List<FilterCriteria> filterCriteria, String groupId, Boolean advanced, Boolean freeFormInput)
+            List<FilterCriteria> filterCriteria, String groupId, Boolean advanced, Boolean limitToOptions)
             throws IllegalArgumentException {
 
         if ((name == null) || (name.isEmpty())) {
@@ -188,7 +188,7 @@ public class ConfigDescriptionParameter {
 
         // To avoid confusion with the UI, only limit to the options, if options are specified
         if (this.options.size() != 0) {
-            this.freeFormInput = freeFormInput;
+            this.limitToOptions = limitToOptions;
         }
 
         if (filterCriteria != null)
@@ -321,8 +321,8 @@ public class ConfigDescriptionParameter {
      *
      * @return true if the value is limited to the options list
      */
-    public boolean getFreeFormInput() {
-        return this.freeFormInput;
+    public boolean getLimitToOptions() {
+        return this.limitToOptions;
     }
 
     /**

@@ -39,7 +39,7 @@ public class ConfigDescriptionParameterBuilder {
     private String label;
     private String description;
 
-    private boolean freeFormInput;
+    private boolean limitToOptions;
     private boolean advanced;
 
     private List<ParameterOption> options = new ArrayList<ParameterOption>();
@@ -196,8 +196,8 @@ public class ConfigDescriptionParameterBuilder {
      *
      * @param options
      */
-    public ConfigDescriptionParameterBuilder withFreeFormInput(Boolean freeFormInput) {
-        this.freeFormInput = freeFormInput;
+    public ConfigDescriptionParameterBuilder withFreeFormInput(Boolean limitToOptions) {
+        this.limitToOptions = limitToOptions;
         return this;
     }
 
@@ -228,7 +228,7 @@ public class ConfigDescriptionParameterBuilder {
      */
     public ConfigDescriptionParameter build() throws IllegalArgumentException {
         return new ConfigDescriptionParameter(name, type, min, max, step, pattern, required, readOnly, multiple,
-                context, defaultValue, label, description, options, filterCriteria, groupId, advanced, freeFormInput);
+                context, defaultValue, label, description, options, filterCriteria, groupId, advanced, limitToOptions);
     }
 
 }

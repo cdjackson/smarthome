@@ -119,7 +119,7 @@ public class ThingTypeResource implements RESTResource {
                         createBeansForOptions(configDescriptionParameter.getOptions()),
                         createBeansForCriteria(configDescriptionParameter.getFilterCriteria()),
                         configDescriptionParameter.getGroupId(), configDescriptionParameter.getAdvanced(),
-                        configDescriptionParameter.getFreeFormInput());
+                        configDescriptionParameter.getLimitToOptions());
                 configDescriptionParameterBeans.add(configDescriptionParameterBean);
             }
             return configDescriptionParameterBeans;
