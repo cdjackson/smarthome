@@ -24,7 +24,7 @@ public class ConfigDescriptionParameterBuilder {
     private String name;
     private Type type;
 
-    private String groupId;
+    private String groupName;
 
     private BigDecimal min;
     private BigDecimal max;
@@ -33,6 +33,7 @@ public class ConfigDescriptionParameterBuilder {
     private boolean required;
     private boolean readOnly;
     private boolean multiple;
+    private BigDecimal multipleLimit;
 
     private String context;
     private String defaultValue;
@@ -122,6 +123,16 @@ public class ConfigDescriptionParameterBuilder {
     }
 
     /**
+     * Set the configuration parameter to allow multiple selection
+     *
+     * @param multiple
+     */
+    public ConfigDescriptionParameterBuilder withMultipleLimit(BigDecimal multipleLimit) {
+        this.multipleLimit = multipleLimit;
+        return this;
+    }
+
+    /**
      * Set the context of the configuration parameter
      *
      * @param context
@@ -196,7 +207,7 @@ public class ConfigDescriptionParameterBuilder {
      *
      * @param options
      */
-    public ConfigDescriptionParameterBuilder withFreeFormInput(Boolean limitToOptions) {
+    public ConfigDescriptionParameterBuilder withLimitToOptions(Boolean limitToOptions) {
         this.limitToOptions = limitToOptions;
         return this;
     }
@@ -206,8 +217,8 @@ public class ConfigDescriptionParameterBuilder {
      *
      * @param options
      */
-    public ConfigDescriptionParameterBuilder withGroupId(String groupId) {
-        this.groupId = groupId;
+    public ConfigDescriptionParameterBuilder withGroupName(String groupName) {
+        this.groupName = groupName;
         return this;
     }
 
@@ -228,7 +239,8 @@ public class ConfigDescriptionParameterBuilder {
      */
     public ConfigDescriptionParameter build() throws IllegalArgumentException {
         return new ConfigDescriptionParameter(name, type, min, max, step, pattern, required, readOnly, multiple,
-                context, defaultValue, label, description, options, filterCriteria, groupId, advanced, limitToOptions);
+                context, defaultValue, label, description, options, filterCriteria, groupName, advanced, limitToOptions, multipleLimit);
     }
 
 }
+

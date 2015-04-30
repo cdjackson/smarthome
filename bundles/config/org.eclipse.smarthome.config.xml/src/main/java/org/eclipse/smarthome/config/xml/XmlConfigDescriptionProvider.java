@@ -248,15 +248,15 @@ public class XmlConfigDescriptionProvider implements ConfigDescriptionProvider {
             ConfigDescription configDescription, ConfigDescriptionParameterGroup group, Locale locale) {
 
         URI configDescriptionURI = configDescription.getURI();
-        String groupId = group.getGroupId();
+        String name = group.getName();
 
-        String label = this.configDescriptionI18nUtil.getParameterLabel(bundle, configDescriptionURI, groupId,
+        String label = this.configDescriptionI18nUtil.getParameterLabel(bundle, configDescriptionURI, name,
                 group.getLabel(), locale);
 
         String description = this.configDescriptionI18nUtil.getParameterDescription(bundle, configDescriptionURI,
-                groupId, group.getDescription(), locale);
+        		name, group.getDescription(), locale);
 
-        ConfigDescriptionParameterGroup localizedGroup = new ConfigDescriptionParameterGroup(groupId, group.getContext(), group.isAdvanced(), label, description);
+        ConfigDescriptionParameterGroup localizedGroup = new ConfigDescriptionParameterGroup(name, group.getContext(), group.isAdvanced(), label, description);
 
         return localizedGroup;
     }

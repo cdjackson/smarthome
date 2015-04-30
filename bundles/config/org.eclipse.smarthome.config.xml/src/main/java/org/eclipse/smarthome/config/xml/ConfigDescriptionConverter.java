@@ -20,6 +20,8 @@ import org.eclipse.smarthome.config.core.ParameterOption;
 import org.eclipse.smarthome.config.xml.util.ConverterAssertion;
 import org.eclipse.smarthome.config.xml.util.ConverterAttributeMapValidator;
 import org.eclipse.smarthome.config.xml.util.GenericUnmarshaller;
+import org.eclipse.smarthome.config.xml.util.NodeAttributes;
+import org.eclipse.smarthome.config.xml.util.NodeIterator;
 import org.eclipse.smarthome.config.xml.util.NodeValue;
 
 import com.thoughtworks.xstream.converters.ConversionException;
@@ -74,17 +76,29 @@ public class ConfigDescriptionConverter extends
 					+ reader.getNodeName() + "' is invalid!", ex);
 		}
 
-		// read values
-		List<ConfigDescriptionParameter> configDescriptionParams = (List<ConfigDescriptionParameter>) context
-				.convertAnother(context, List.class);
-		List<ConfigDescriptionParameterGroup> configDescriptionGroups = (List<ConfigDescriptionParameterGroup>) context
-				.convertAnother(context, List.class);
+		// create the lists to hold parameters and groups
+		List<ConfigDescriptionParameter> configDescriptionParams = new ArrayList<ConfigDescriptionParameter>();
+		List<ConfigDescriptionParameterGroup> configDescriptionGroups = new ArrayList<ConfigDescriptionParameterGroup>();
+
+        // read values
+        List<?> nodes = (List<?>) context.convertAnother(context, List.class);
+        NodeIterator nodeIterator = new NodeIterator(nodes);
+
+        // iterate through the nodes, putting the different types into their respective arrays 
+        while(nodeIterator.hasNext() == true) {
+        	Object node = nodeIterator.next();
+        	if(node instanceof ConfigDescriptionParameter) {
+        		configDescriptionParams.add((ConfigDescriptionParameter)node);
+        	}
+        	if(node instanceof ConfigDescriptionParameterGroup) {
+        		configDescriptionGroups.add((ConfigDescriptionParameterGroup)node);
+        	}
+        }
 
 		ConverterAssertion.assertEndOfType(reader);
 
 		// create object
-		configDescription = new ConfigDescription(uri, configDescriptionParams,
-				configDescriptionGroups);
+		configDescription = new ConfigDescription(uri, configDescriptionParams, configDescriptionGroups);
 
 		return configDescription;
 	}

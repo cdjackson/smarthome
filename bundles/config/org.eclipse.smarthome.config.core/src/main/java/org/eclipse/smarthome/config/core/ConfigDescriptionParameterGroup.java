@@ -22,7 +22,7 @@ package org.eclipse.smarthome.config.core;
  */
 public class ConfigDescriptionParameterGroup {
 
-    private String groupId;
+    private String name;
     private String context;
     private boolean advanced;
     private String label;
@@ -33,7 +33,7 @@ public class ConfigDescriptionParameterGroup {
      * of parameters together.
      *
      * @param groupId
-     *            the groupId, used to link the group, to the parameter
+     *            the name, used to link the group, to the parameter
      * @param context
      *            a context string. Can be used to provide some context to the group
      * @param advanced
@@ -43,9 +43,9 @@ public class ConfigDescriptionParameterGroup {
      * @param description
      *            a description that can be provided to the user
      */
-    public ConfigDescriptionParameterGroup(String groupId, String context, Boolean advanced, String label,
+    public ConfigDescriptionParameterGroup(String name, String context, Boolean advanced, String label,
             String description) {
-        this.groupId = groupId;
+        this.name = name;
         this.context = context;
         this.advanced = advanced;
         this.label = label;
@@ -57,8 +57,8 @@ public class ConfigDescriptionParameterGroup {
      *
      * @return groupId as string
      */
-    public String getGroupId() {
-        return groupId;
+    public String getName() {
+        return name;
     }
 
     /**
@@ -99,7 +99,7 @@ public class ConfigDescriptionParameterGroup {
 
     @Override
     public String toString() {
-        return this.getClass().getSimpleName() + " [groupId=\"" + groupId + "\", context=\"" + context
+        return this.getClass().getSimpleName() + " [groupId=\"" + name + "\", context=\"" + context
                 + "\", advanced=\"" + advanced + "\", label=\"" + label + "\"" + label + "\", description=\""
                 + description + "\"]";
     }

@@ -15,6 +15,7 @@
 		</parameter>
 
 		<parameter name="username" type="text">
+			<groupName>user</groupName>
 			<context>password</context>
 			<label>Username</label>
 			<description>Name of a registered hue bridge user, that allows to access the API.
@@ -23,19 +24,37 @@
 		    
 		<!-- password with min 8, max 16 characters -->
 		<parameter name="user-pass" type="text" min="8" max="16" required="true">
+			<groupName>user</groupName>
 			<context>password</context>
 			<label>Password</label>
 			<required>true</required><!-- deprecated -->
 		</parameter>
 		
 		<!-- a static selection list allowing multiple selections with min 2 max 3 items -->
-	    <parameter name="list" type="text" multiple="true" min="2" max="3">
+	    <parameter name="list1" type="text" multiple="true" min="2" max="3">
 	        <options>
 	            <option value="key1">label1</option>
 	            <option value="key2">label2</option>
 	        </options>
 	    </parameter>
-	     
+
+	    <parameter name="list2" type="text" multiple="true" min="2" max="3">
+	        <options>
+	            <option value="key1">label1</option>
+	            <option value="key2">label2</option>
+	        </options>
+	        <multipleLimit>4</multipleLimit>
+	    </parameter>
+	    
+	   	<parameter name="list3" type="text" multiple="false" min="2" max="3">
+	        <options>
+	            <option value="key1">label1</option>
+	            <option value="key2">label2</option>
+	        </options>
+	        <limitToOptions>true</limitToOptions>
+	        
+	    </parameter>
+
 	    <!-- a selection list of color items that have the tags "alarm" and "light" -->
 	    <parameter name="color-alarming-light" type="text" multiple="true">
 	        <context>item</context>
@@ -46,12 +65,18 @@
 	        </filter>
 		</parameter>
 		
-					<group groupId="group1">
-				<context>"Context-Group1"</context>
-				<label>Group 1</label>
-				<description>Description Group 1</description>
-				<advanced>false</advanced>
-			</group>
+		<group name="group1">
+			<context>Context-Group1</context>
+			<label>Group 1</label>
+			<description>Description Group 1</description>
+			<advanced>false</advanced>
+		</group>
+		<group name="group2">
+			<context>Context-Group2</context>
+			<label>Group 2</label>
+			<description>Description Group 2</description>
+			<advanced>true</advanced>
+		</group>
 			
 	</config-description>
 
