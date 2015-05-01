@@ -62,9 +62,9 @@ class ConfigDescriptionsTest extends OSGiTest {
         ConfigDescription dummyConfigDescription = configDescriptions.find {
                 it.uri.equals(new URI("config:dummyConfig")) }
         assertThat dummyConfigDescription, is(notNullValue())
-        
+
         def parameters = dummyConfigDescription.parameters
-        assertThat parameters.size(), is(7)
+        assertThat parameters.size(), is(6)
         
         ConfigDescriptionParameter ipParameter = parameters.find { it.name.equals("ip") }
         assertThat ipParameter, is(notNullValue())
@@ -84,6 +84,7 @@ class ConfigDescriptionsTest extends OSGiTest {
         assertThat usernameParameter, is(notNullValue())
         assertThat usernameParameter.type, is(Type.TEXT)
         usernameParameter.with {
+	        assertThat groupName, is("user")
             assertThat context, is("password")
             assertThat label, is("Username")
             assertThat required, is(false)
@@ -104,7 +105,6 @@ class ConfigDescriptionsTest extends OSGiTest {
             assertThat context, is("password")
             assertThat label, is("Password")
         }
-
 
         ConfigDescriptionParameter colorItemParameter = parameters.find { it.name.equals("color-alarming-light") }
         assertThat colorItemParameter, is(notNullValue())
@@ -127,11 +127,46 @@ class ConfigDescriptionsTest extends OSGiTest {
             assertThat min, is(2 as BigDecimal)
             assertThat max, is(3 as BigDecimal)
             assertThat options, is(notNullValue())
-            assertThat limitToOptions, is(false)
+            assertThat advanced, is(false)
+            assertThat limitToOptions, is(true)
             assertThat multipleLimit, is(null)
             assertThat options.join(", "), is("ParameterOption [value=\"key1\", label=\"label1\"], ParameterOption [value=\"key2\", label=\"label2\"]")
         }
         
+        ConfigDescriptionParameter listParameter2 = parameters.find { it.name.equals("list2") }
+        assertThat listParameter2, is(notNullValue())
+        assertThat listParameter2.type, is(Type.TEXT)
+        listParameter2.with {
+            assertThat required, is(false)
+            assertThat multiple, is(true)
+            assertThat readOnly, is(false)
+            assertThat options, is(notNullValue())
+            assertThat advanced, is(true)
+            assertThat limitToOptions, is(false)
+            assertThat multipleLimit, is(4)
+        }
+        
+        def groups = dummyConfigDescription.groups
+        assertThat groups.size(), is(2)
+
+        ConfigDescriptionParameterGroup group1 = groups.find { it.name.equals("group1") }
+        assertThat group1, is(notNullValue())
+        group1.with {
+            assertThat label, is("Group 1")
+            assertThat description, is("Description Group 1")
+            assertThat advanced, is(false)
+            assertThat context, is("Context-Group1")
+        }
+
+        ConfigDescriptionParameterGroup group2 = groups.find { it.name.equals("group2") }
+        assertThat group1, is(notNullValue())
+        group2.with {
+            assertThat label, is("Group 2")
+            assertThat description, is("Description Group 2")
+            assertThat advanced, is(true)
+            assertThat context, is("Context-Group2")
+        }
+
         // uninstall test bundle
         bundle.uninstall();
         assertThat bundle.state, is(Bundle.UNINSTALLED)

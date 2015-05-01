@@ -7,10 +7,7 @@
  */
 package org.eclipse.smarthome.config.xml;
 
-import java.util.Map;
-
 import org.eclipse.smarthome.config.core.ConfigDescriptionParameterGroup;
-import org.eclipse.smarthome.config.xml.util.ConverterAttributeMapValidator;
 import org.eclipse.smarthome.config.xml.util.ConverterValueMap;
 import org.eclipse.smarthome.config.xml.util.GenericUnmarshaller;
 

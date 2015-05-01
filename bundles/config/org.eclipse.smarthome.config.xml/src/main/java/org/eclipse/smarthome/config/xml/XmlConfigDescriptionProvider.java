@@ -239,8 +239,10 @@ public class XmlConfigDescriptionProvider implements ConfigDescriptionProvider {
                 .withRequired(parameter.isRequired()).withReadOnly(parameter.isReadOnly())
                 .withMultiple(parameter.isMultiple()).withContext(parameter.getContext())
                 .withDefault(parameter.getDefault()).withLabel(label).withDescription(description).withOptions(options)
-                .withFilterCriteria(parameter.getFilterCriteria()).build();
-
+                .withFilterCriteria(parameter.getFilterCriteria()).withGroupName(parameter.getGroupName())
+				.withAdvanced(parameter.isAdvanced()).withLimitToOptions(parameter.getLimitToOptions())
+				.withMultipleLimit(parameter.getMultipleLimit()).build();
+		
         return localizedParameter;
     }
 

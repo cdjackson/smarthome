@@ -8,10 +8,12 @@
 	<config-description uri="config:dummyConfig">
 
 		<parameter name="ip" type="text" pattern="[0-9]{3}.[0-9]{3}.[0-9]{3}.[0-9]{3}" required="true" readOnly="true">
+	        <multipleLimit>4</multipleLimit>
 			<context>network-address</context>
 			<label>Network Address</label>
 			<description>Network address of the hue bridge.</description>
 			<required>true</required><!-- deprecated -->
+			<limitToOptions>true</limitToOptions>
 		</parameter>
 
 		<parameter name="username" type="text">
@@ -43,16 +45,9 @@
 	            <option value="key1">label1</option>
 	            <option value="key2">label2</option>
 	        </options>
+	        <advanced>true</advanced>
 	        <multipleLimit>4</multipleLimit>
-	    </parameter>
-	    
-	   	<parameter name="list3" type="text" multiple="false" min="2" max="3">
-	        <options>
-	            <option value="key1">label1</option>
-	            <option value="key2">label2</option>
-	        </options>
-	        <limitToOptions>true</limitToOptions>
-	        
+	        <limitToOptions>false</limitToOptions>
 	    </parameter>
 
 	    <!-- a selection list of color items that have the tags "alarm" and "light" -->

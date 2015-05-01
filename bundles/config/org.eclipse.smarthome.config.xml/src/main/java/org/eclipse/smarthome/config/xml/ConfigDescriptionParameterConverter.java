@@ -117,7 +117,7 @@ public class ConfigDescriptionParameterConverter extends
 		String groupName = valueMap.getString("groupName");
 		Boolean advanced = valueMap.getBoolean("advanced", false);
 		Boolean limitToOptions = valueMap.getBoolean("limitToOptions", true);
-		BigDecimal multipleLimit = toNumber(attributes.get("multipleLimit"));
+		Integer multipleLimit = valueMap.getInteger("multipleLimit");
 
 		// read options and filter criteria
 		List<ParameterOption> options = readParameterOptions(valueMap

@@ -33,7 +33,7 @@ public class ConfigDescriptionParameterBuilder {
     private boolean required;
     private boolean readOnly;
     private boolean multiple;
-    private BigDecimal multipleLimit;
+    private Integer multipleLimit;
 
     private String context;
     private String defaultValue;
@@ -127,7 +127,7 @@ public class ConfigDescriptionParameterBuilder {
      *
      * @param multiple
      */
-    public ConfigDescriptionParameterBuilder withMultipleLimit(BigDecimal multipleLimit) {
+    public ConfigDescriptionParameterBuilder withMultipleLimit(Integer multipleLimit) {
         this.multipleLimit = multipleLimit;
         return this;
     }

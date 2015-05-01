@@ -71,7 +71,7 @@ public class ConfigDescriptionParameter {
 	private boolean required;
 	private boolean readOnly;
 	private boolean multiple;
-	private BigDecimal multipleLimit;
+	private Integer multipleLimit;
 
 	private String context;
 	private String defaultValue;
@@ -170,7 +170,7 @@ public class ConfigDescriptionParameter {
 			Boolean multiple, String context, String defaultValue,
 			String label, String description, List<ParameterOption> options,
 			List<FilterCriteria> filterCriteria, String groupName,
-			Boolean advanced, Boolean limitToOptions, BigDecimal multipleLimit)
+			Boolean advanced, Boolean limitToOptions, Integer multipleLimit)
 			throws IllegalArgumentException {
 
 		if ((name == null) || (name.isEmpty())) {
@@ -205,9 +205,8 @@ public class ConfigDescriptionParameter {
 			this.options = Collections
 					.unmodifiableList(new LinkedList<ParameterOption>());
 
-		System.out.println("input is " + limitToOptions);
-		this.limitToOptions = true;//limitToOptions;
-		System.out.println("output is " + this.limitToOptions);
+		this.limitToOptions = limitToOptions;
+		this.multipleLimit = multipleLimit;
 
 		if (filterCriteria != null)
 			this.filterCriteria = Collections.unmodifiableList(filterCriteria);
@@ -283,7 +282,7 @@ public class ConfigDescriptionParameter {
 	 * @return true if multiple selections of options are allowed, otherwise
 	 *         false.
 	 */
-	public BigDecimal getMultipleLimit() {
+	public Integer getMultipleLimit() {
 		return multipleLimit;
 	}
 
@@ -363,7 +362,7 @@ public class ConfigDescriptionParameter {
 	 *
 	 * @return true if the value is an advanced option
 	 */
-	public boolean getAdvanced() {
+	public boolean isAdvanced() {
 		return this.advanced;
 	}
 
