@@ -16,13 +16,10 @@ import java.util.Map;
 import org.eclipse.smarthome.config.core.ConfigDescription;
 import org.eclipse.smarthome.config.core.ConfigDescriptionParameter;
 import org.eclipse.smarthome.config.core.ConfigDescriptionParameterGroup;
-import org.eclipse.smarthome.config.core.ParameterOption;
 import org.eclipse.smarthome.config.xml.util.ConverterAssertion;
 import org.eclipse.smarthome.config.xml.util.ConverterAttributeMapValidator;
 import org.eclipse.smarthome.config.xml.util.GenericUnmarshaller;
-import org.eclipse.smarthome.config.xml.util.NodeAttributes;
 import org.eclipse.smarthome.config.xml.util.NodeIterator;
-import org.eclipse.smarthome.config.xml.util.NodeValue;
 
 import com.thoughtworks.xstream.converters.ConversionException;
 import com.thoughtworks.xstream.converters.Converter;
@@ -30,77 +27,72 @@ import com.thoughtworks.xstream.converters.UnmarshallingContext;
 import com.thoughtworks.xstream.io.HierarchicalStreamReader;
 
 /**
- * The {@link ConfigDescriptionConverter} is a concrete implementation of the
- * {@code XStream} {@link Converter} interface used to convert config
- * description information within an XML document into a
- * {@link ConfigDescription} object.
+ * The {@link ConfigDescriptionConverter} is a concrete implementation of the {@code XStream} {@link Converter}
+ * interface used to convert config
+ * description information within an XML document into a {@link ConfigDescription} object.
  * <p>
  * This converter converts {@code config-description} XML tags.
  *
  * @author Michael Grammling - Initial Contribution
  * @author Chris Jackson - Added configuration groups
  */
-public class ConfigDescriptionConverter extends
-		GenericUnmarshaller<ConfigDescription> {
+public class ConfigDescriptionConverter extends GenericUnmarshaller<ConfigDescription> {
 
-	private ConverterAttributeMapValidator attributeMapValidator;
+    private ConverterAttributeMapValidator attributeMapValidator;
 
-	public ConfigDescriptionConverter() {
-		super(ConfigDescription.class);
+    public ConfigDescriptionConverter() {
+        super(ConfigDescription.class);
 
-		this.attributeMapValidator = new ConverterAttributeMapValidator(
-				new String[][] { { "uri", "false" } });
-	}
+        this.attributeMapValidator = new ConverterAttributeMapValidator(new String[][] { { "uri", "false" } });
+    }
 
-	@SuppressWarnings("unchecked")
-	@Override
-	public Object unmarshal(HierarchicalStreamReader reader,
-			UnmarshallingContext context) {
-		ConfigDescription configDescription = null;
+    @Override
+    public Object unmarshal(HierarchicalStreamReader reader, UnmarshallingContext context) {
+        ConfigDescription configDescription = null;
 
-		// read attributes
-		Map<String, String> attributes = this.attributeMapValidator
-				.readValidatedAttributes(reader);
-		String uriText = attributes.get("uri");
-		if (uriText == null) {
-			// the URI could be overridden by a context field if it could be
-			// automatically extracted
-			uriText = (String) context.get("config-description.uri");
-		}
+        // read attributes
+        Map<String, String> attributes = this.attributeMapValidator.readValidatedAttributes(reader);
+        String uriText = attributes.get("uri");
+        if (uriText == null) {
+            // the URI could be overridden by a context field if it could be
+            // automatically extracted
+            uriText = (String) context.get("config-description.uri");
+        }
 
-		URI uri = null;
-		try {
-			uri = new URI(uriText);
-		} catch (NullPointerException | URISyntaxException ex) {
-			throw new ConversionException("The URI '" + uriText + "' in node '"
-					+ reader.getNodeName() + "' is invalid!", ex);
-		}
+        URI uri = null;
+        try {
+            uri = new URI(uriText);
+        } catch (NullPointerException | URISyntaxException ex) {
+            throw new ConversionException("The URI '" + uriText + "' in node '" + reader.getNodeName()
+                    + "' is invalid!", ex);
+        }
 
-		// create the lists to hold parameters and groups
-		List<ConfigDescriptionParameter> configDescriptionParams = new ArrayList<ConfigDescriptionParameter>();
-		List<ConfigDescriptionParameterGroup> configDescriptionGroups = new ArrayList<ConfigDescriptionParameterGroup>();
+        // create the lists to hold parameters and groups
+        List<ConfigDescriptionParameter> configDescriptionParams = new ArrayList<ConfigDescriptionParameter>();
+        List<ConfigDescriptionParameterGroup> configDescriptionGroups = new ArrayList<ConfigDescriptionParameterGroup>();
 
         // read values
         List<?> nodes = (List<?>) context.convertAnother(context, List.class);
         NodeIterator nodeIterator = new NodeIterator(nodes);
 
-        // iterate through the nodes, putting the different types into their respective arrays 
-        while(nodeIterator.hasNext() == true) {
-        	Object node = nodeIterator.next();
-        	if(node instanceof ConfigDescriptionParameter) {
-        		configDescriptionParams.add((ConfigDescriptionParameter)node);
-        	}
-        	if(node instanceof ConfigDescriptionParameterGroup) {
-        		configDescriptionGroups.add((ConfigDescriptionParameterGroup)node);
-        	}
+        // iterate through the nodes, putting the different types into their
+        // respective arrays
+        while (nodeIterator.hasNext() == true) {
+            Object node = nodeIterator.next();
+            if (node instanceof ConfigDescriptionParameter) {
+                configDescriptionParams.add((ConfigDescriptionParameter) node);
+            }
+            if (node instanceof ConfigDescriptionParameterGroup) {
+                configDescriptionGroups.add((ConfigDescriptionParameterGroup) node);
+            }
         }
 
-		ConverterAssertion.assertEndOfType(reader);
+        ConverterAssertion.assertEndOfType(reader);
 
-		// create object
-		configDescription = new ConfigDescription(uri, configDescriptionParams, configDescriptionGroups);
+        // create object
+        configDescription = new ConfigDescription(uri, configDescriptionParams, configDescriptionGroups);
 
-		return configDescription;
-	}
+        return configDescription;
+    }
 
 }

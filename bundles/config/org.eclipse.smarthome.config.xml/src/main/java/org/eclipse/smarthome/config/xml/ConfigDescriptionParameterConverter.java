@@ -30,8 +30,7 @@ import com.thoughtworks.xstream.io.HierarchicalStreamReader;
 /**
  * The {@link ConfigDescriptionParameterConverter} is a concrete implementation
  * of the {@code XStream} {@link Converter} interface used to convert config
- * description parameters information within an XML document into a
- * {@link ConfigDescriptionParameter} object.
+ * description parameters information within an XML document into a {@link ConfigDescriptionParameter} object.
  * <p>
  * This converter converts {@code parameter} XML tags.
  *
@@ -40,122 +39,109 @@ import com.thoughtworks.xstream.io.HierarchicalStreamReader;
  * @author Chris Jackson - Modified to use config parameter builder. Added
  *         parameters.
  */
-public class ConfigDescriptionParameterConverter extends
-		GenericUnmarshaller<ConfigDescriptionParameter> {
+public class ConfigDescriptionParameterConverter extends GenericUnmarshaller<ConfigDescriptionParameter> {
 
-	private ConverterAttributeMapValidator attributeMapValidator;
+    private ConverterAttributeMapValidator attributeMapValidator;
 
-	public ConfigDescriptionParameterConverter() {
-		super(ConfigDescriptionParameter.class);
+    public ConfigDescriptionParameterConverter() {
+        super(ConfigDescriptionParameter.class);
 
-		this.attributeMapValidator = new ConverterAttributeMapValidator(
-				new String[][] { { "name", "true" }, { "type", "true" },
-						{ "min", "false" }, { "max", "false" },
-						{ "step", "false" }, { "pattern", "false" },
-						{ "required", "false" }, { "readOnly", "false" },
-						{ "multiple", "false" } });
-	}
+        this.attributeMapValidator = new ConverterAttributeMapValidator(new String[][] { { "name", "true" },
+                { "type", "true" }, { "min", "false" }, { "max", "false" }, { "step", "false" },
+                { "pattern", "false" }, { "required", "false" }, { "readOnly", "false" }, { "multiple", "false" } });
+    }
 
-	private Type toType(String xmlType) {
-		if (xmlType != null) {
-			return Type.valueOf(xmlType.toUpperCase());
-		}
+    private Type toType(String xmlType) {
+        if (xmlType != null) {
+            return Type.valueOf(xmlType.toUpperCase());
+        }
 
-		return null;
-	}
+        return null;
+    }
 
-	private BigDecimal toNumber(String value) {
-		try {
-			if (value != null)
-				return new BigDecimal(value);
-		} catch (NumberFormatException e) {
-			throw new ConversionException("The value '" + value
-					+ "' could not be converted to a decimal number.", e);
-		}
-		return null;
-	}
+    private BigDecimal toNumber(String value) {
+        try {
+            if (value != null)
+                return new BigDecimal(value);
+        } catch (NumberFormatException e) {
+            throw new ConversionException("The value '" + value + "' could not be converted to a decimal number.", e);
+        }
+        return null;
+    }
 
-	private Boolean toBoolean(String val) {
-		if (val == null)
-			return null;
-		return new Boolean(val);
-	}
+    private Boolean toBoolean(String val) {
+        if (val == null)
+            return null;
+        return new Boolean(val);
+    }
 
-	private Boolean falseIfNull(Boolean b) {
-		return (b != null) ? b : false;
-	}
+    private Boolean falseIfNull(Boolean b) {
+        return (b != null) ? b : false;
+    }
 
-	@Override
-	public Object unmarshal(HierarchicalStreamReader reader,
-			UnmarshallingContext context) {
-		ConfigDescriptionParameter configDescriptionParam = null;
+    @Override
+    public Object unmarshal(HierarchicalStreamReader reader, UnmarshallingContext context) {
+        ConfigDescriptionParameter configDescriptionParam = null;
 
-		// read attributes
-		Map<String, String> attributes = this.attributeMapValidator
-				.readValidatedAttributes(reader);
-		String name = attributes.get("name");
-		Type type = toType(attributes.get("type"));
-		BigDecimal min = toNumber(attributes.get("min"));
-		BigDecimal max = toNumber(attributes.get("max"));
-		BigDecimal step = toNumber(attributes.get("step"));
-		String patternString = attributes.get("pattern");
-		Boolean required = toBoolean(attributes.get("required"));
-		Boolean readOnly = falseIfNull(toBoolean(attributes.get("readOnly")));
-		Boolean multiple = falseIfNull(toBoolean(attributes.get("multiple")));
+        // read attributes
+        Map<String, String> attributes = this.attributeMapValidator.readValidatedAttributes(reader);
+        String name = attributes.get("name");
+        Type type = toType(attributes.get("type"));
+        BigDecimal min = toNumber(attributes.get("min"));
+        BigDecimal max = toNumber(attributes.get("max"));
+        BigDecimal step = toNumber(attributes.get("step"));
+        String patternString = attributes.get("pattern");
+        Boolean required = toBoolean(attributes.get("required"));
+        Boolean readOnly = falseIfNull(toBoolean(attributes.get("readOnly")));
+        Boolean multiple = falseIfNull(toBoolean(attributes.get("multiple")));
 
-		// read values
-		ConverterValueMap valueMap = new ConverterValueMap(reader, context);
-		String parameterContext = valueMap.getString("context");
-		if (required == null) {
-			// fallback to deprecated "required" element
-			required = valueMap.getBoolean("required", false);
-		}
-		String defaultValue = valueMap.getString("default");
-		String label = valueMap.getString("label");
-		String description = valueMap.getString("description");
+        // read values
+        ConverterValueMap valueMap = new ConverterValueMap(reader, context);
+        String parameterContext = valueMap.getString("context");
+        if (required == null) {
+            // fallback to deprecated "required" element
+            required = valueMap.getBoolean("required", false);
+        }
+        String defaultValue = valueMap.getString("default");
+        String label = valueMap.getString("label");
+        String description = valueMap.getString("description");
 
-		String groupName = valueMap.getString("groupName");
-		Boolean advanced = valueMap.getBoolean("advanced", false);
-		Boolean limitToOptions = valueMap.getBoolean("limitToOptions", true);
-		Integer multipleLimit = valueMap.getInteger("multipleLimit");
+        String groupName = valueMap.getString("groupName");
+        Boolean advanced = valueMap.getBoolean("advanced", false);
+        Boolean limitToOptions = valueMap.getBoolean("limitToOptions", true);
+        Integer multipleLimit = valueMap.getInteger("multipleLimit");
 
-		// read options and filter criteria
-		List<ParameterOption> options = readParameterOptions(valueMap
-				.getObject("options"));
-		@SuppressWarnings("unchecked")
-		List<FilterCriteria> filterCriteria = (List<FilterCriteria>) valueMap
-				.getObject("filter");
+        // read options and filter criteria
+        List<ParameterOption> options = readParameterOptions(valueMap.getObject("options"));
+        @SuppressWarnings("unchecked")
+        List<FilterCriteria> filterCriteria = (List<FilterCriteria>) valueMap.getObject("filter");
 
-		// create object
-		configDescriptionParam = ConfigDescriptionParameterBuilder
-				.create(name, type).withMinimum(min).withMaximum(max)
-				.withStepSize(step).withPattern(patternString)
-				.withRequired(required).withReadOnly(readOnly)
-				.withMultiple(multiple).withContext(parameterContext)
-				.withDefault(defaultValue).withLabel(label)
-				.withDescription(description).withOptions(options)
-				.withFilterCriteria(filterCriteria).withGroupName(groupName)
-				.withAdvanced(advanced).withLimitToOptions(limitToOptions)
-				.withMultipleLimit(multipleLimit).build();
+        // create object
+        configDescriptionParam = ConfigDescriptionParameterBuilder.create(name, type).withMinimum(min).withMaximum(max)
+                .withStepSize(step).withPattern(patternString).withRequired(required).withReadOnly(readOnly)
+                .withMultiple(multiple).withContext(parameterContext).withDefault(defaultValue).withLabel(label)
+                .withDescription(description).withOptions(options).withFilterCriteria(filterCriteria)
+                .withGroupName(groupName).withAdvanced(advanced).withLimitToOptions(limitToOptions)
+                .withMultipleLimit(multipleLimit).build();
 
-		return configDescriptionParam;
-	}
+        return configDescriptionParam;
+    }
 
-	private List<ParameterOption> readParameterOptions(Object rawNodeValueList) {
-		if (rawNodeValueList instanceof List<?>) {
-			List<?> list = (List<?>) rawNodeValueList;
-			List<ParameterOption> result = new ArrayList<>();
-			for (Object object : list) {
-				if (object instanceof NodeValue) {
-					NodeValue nodeValue = (NodeValue) object;
-					String value = nodeValue.getAttributes().get("value");
-					String label = nodeValue.getValue().toString();
-					result.add(new ParameterOption(value, label));
-				}
-			}
-			return result;
-		}
-		return null;
-	}
+    private List<ParameterOption> readParameterOptions(Object rawNodeValueList) {
+        if (rawNodeValueList instanceof List<?>) {
+            List<?> list = (List<?>) rawNodeValueList;
+            List<ParameterOption> result = new ArrayList<>();
+            for (Object object : list) {
+                if (object instanceof NodeValue) {
+                    NodeValue nodeValue = (NodeValue) object;
+                    String value = nodeValue.getAttributes().get("value");
+                    String label = nodeValue.getValue().toString();
+                    result.add(new ParameterOption(value, label));
+                }
+            }
+            return result;
+        }
+        return null;
+    }
 
 }

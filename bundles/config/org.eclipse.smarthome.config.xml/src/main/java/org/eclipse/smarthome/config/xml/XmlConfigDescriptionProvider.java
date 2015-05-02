@@ -163,7 +163,8 @@ public class XmlConfigDescriptionProvider implements ConfigDescriptionProvider {
         Collection<Entry<Bundle, List<ConfigDescription>>> configDescriptionsList = this.bundleConfigDescriptionsMap
                 .entrySet();
 
-        // Loop through the config description list looking for the one associated with this URI
+        // Loop through the config description list looking for the one
+        // associated with this URI
         if (configDescriptionsList != null) {
             for (Entry<Bundle, List<ConfigDescription>> configDescriptions : configDescriptionsList) {
                 for (ConfigDescription configDescription : configDescriptions.getValue()) {
@@ -240,9 +241,9 @@ public class XmlConfigDescriptionProvider implements ConfigDescriptionProvider {
                 .withMultiple(parameter.isMultiple()).withContext(parameter.getContext())
                 .withDefault(parameter.getDefault()).withLabel(label).withDescription(description).withOptions(options)
                 .withFilterCriteria(parameter.getFilterCriteria()).withGroupName(parameter.getGroupName())
-				.withAdvanced(parameter.isAdvanced()).withLimitToOptions(parameter.getLimitToOptions())
-				.withMultipleLimit(parameter.getMultipleLimit()).build();
-		
+                .withAdvanced(parameter.isAdvanced()).withLimitToOptions(parameter.getLimitToOptions())
+                .withMultipleLimit(parameter.getMultipleLimit()).build();
+
         return localizedParameter;
     }
 
@@ -255,10 +256,11 @@ public class XmlConfigDescriptionProvider implements ConfigDescriptionProvider {
         String label = this.configDescriptionI18nUtil.getParameterLabel(bundle, configDescriptionURI, name,
                 group.getLabel(), locale);
 
-        String description = this.configDescriptionI18nUtil.getParameterDescription(bundle, configDescriptionURI,
-        		name, group.getDescription(), locale);
+        String description = this.configDescriptionI18nUtil.getParameterDescription(bundle, configDescriptionURI, name,
+                group.getDescription(), locale);
 
-        ConfigDescriptionParameterGroup localizedGroup = new ConfigDescriptionParameterGroup(name, group.getContext(), group.isAdvanced(), label, description);
+        ConfigDescriptionParameterGroup localizedGroup = new ConfigDescriptionParameterGroup(name, group.getContext(),
+                group.isAdvanced(), label, description);
 
         return localizedGroup;
     }

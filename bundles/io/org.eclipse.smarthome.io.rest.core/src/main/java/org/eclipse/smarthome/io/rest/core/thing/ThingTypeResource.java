@@ -119,8 +119,7 @@ public class ThingTypeResource implements RESTResource {
                         createBeansForOptions(configDescriptionParameter.getOptions()),
                         createBeansForCriteria(configDescriptionParameter.getFilterCriteria()),
                         configDescriptionParameter.getGroupName(), configDescriptionParameter.isAdvanced(),
-                        configDescriptionParameter.getLimitToOptions(),
-                        configDescriptionParameter.getMultipleLimit());
+                        configDescriptionParameter.getLimitToOptions(), configDescriptionParameter.getMultipleLimit());
                 configDescriptionParameterBeans.add(configDescriptionParameterBean);
             }
             return configDescriptionParameterBeans;
@@ -214,9 +213,8 @@ public class ThingTypeResource implements RESTResource {
 
             List<ConfigDescriptionParameterGroup> parameterGroups = configDescription.getGroups();
             for (ConfigDescriptionParameterGroup parameterGroup : parameterGroups) {
-                parameterGroupBeans.add(new ParameterGroupBean(parameterGroup.getName(),
-                        parameterGroup.getContext(), parameterGroup.isAdvanced(), parameterGroup.getLabel(),
-                        parameterGroup.getDescription()));
+                parameterGroupBeans.add(new ParameterGroupBean(parameterGroup.getName(), parameterGroup.getContext(),
+                        parameterGroup.isAdvanced(), parameterGroup.getLabel(), parameterGroup.getDescription()));
             }
         }
 

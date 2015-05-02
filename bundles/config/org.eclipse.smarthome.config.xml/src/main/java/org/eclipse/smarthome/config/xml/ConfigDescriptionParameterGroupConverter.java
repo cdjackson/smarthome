@@ -16,7 +16,8 @@ import com.thoughtworks.xstream.io.HierarchicalStreamReader;
 
 /**
  * The {@link ConfigDescriptionParameterGroupConverter} creates a {@link ConfigDescriptionParameterGroup} instance from
- * a {@code option} XML node.
+ * a {@code option} XML
+ * node.
  *
  * @author Chris Jackson - Initial Contribution
  */

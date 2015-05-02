@@ -19,11 +19,10 @@ import java.util.List;
  * data itself and is usually used for data validation of the concrete
  * configuration or for supporting user interfaces.
  * <p>
- * The {@link ConfigDescriptionParameterGroup} provides a method to group parameters to allow
- * the UI to better display the parameter information. This can be left blank
- * for small devices where there are only a few parameters, however devices with
- * larger numbers of parameters can set the group member in the {@link ConfigDescriptionParameter}
- * and then provide group information as part of the {@link ConfigDescription} class.
+ * The {@link ConfigDescriptionParameterGroup} provides a method to group parameters to allow the UI to better display
+ * the parameter information. This can be left blank for small devices where there are only a few parameters, however
+ * devices with larger numbers of parameters can set the group member in the {@link ConfigDescriptionParameter} and then
+ * provide group information as part of the {@link ConfigDescription} class.
  * <p>
  * The description is stored within the {@link ConfigDescriptionRegistry} under the given URI. The URI has to follow the
  * syntax {@code '<scheme>:<token>[:<token>]'} (e.g. {@code "binding:hue:bridge"}).
@@ -76,7 +75,8 @@ public class ConfigDescription {
      *
      * @throws IllegalArgumentException if the URI is null or invalid
      */
-    public ConfigDescription(URI uri, List<ConfigDescriptionParameter> parameters, List<ConfigDescriptionParameterGroup> groups) {
+    public ConfigDescription(URI uri, List<ConfigDescriptionParameter> parameters,
+            List<ConfigDescriptionParameterGroup> groups) {
         if (uri == null) {
             throw new IllegalArgumentException("The URI must not be null!");
         }
@@ -94,7 +94,7 @@ public class ConfigDescription {
         } else {
             this.parameters = Collections.unmodifiableList(new ArrayList<ConfigDescriptionParameter>(0));
         }
-        
+
         if (groups != null) {
             this.groups = Collections.unmodifiableList(groups);
         } else {
