@@ -100,6 +100,6 @@ public class ConfigDescriptionParameterGroup {
     @Override
     public String toString() {
         return this.getClass().getSimpleName() + " [groupId=\"" + name + "\", context=\"" + context + "\", advanced=\""
-                + advanced + "\", label=\"" + label + "\"" + label + "\", description=\"" + description + "\"]";
+                + advanced + "\", label=\"" + label + "\", description=\"" + description + "\"]";
     }
 }
