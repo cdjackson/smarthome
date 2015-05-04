@@ -48,7 +48,8 @@ public class ConfigDescriptionParameterConverter extends GenericUnmarshaller<Con
 
         this.attributeMapValidator = new ConverterAttributeMapValidator(new String[][] { { "name", "true" },
                 { "type", "true" }, { "min", "false" }, { "max", "false" }, { "step", "false" },
-                { "pattern", "false" }, { "required", "false" }, { "readOnly", "false" }, { "multiple", "false" } });
+                { "pattern", "false" }, { "required", "false" }, { "readOnly", "false" }, { "multiple", "false" },
+                { "groupName", "false" } });
     }
 
     private Type toType(String xmlType) {
@@ -94,6 +95,7 @@ public class ConfigDescriptionParameterConverter extends GenericUnmarshaller<Con
         Boolean required = toBoolean(attributes.get("required"));
         Boolean readOnly = falseIfNull(toBoolean(attributes.get("readOnly")));
         Boolean multiple = falseIfNull(toBoolean(attributes.get("multiple")));
+        String groupName = attributes.get("groupName");
 
         // read values
         ConverterValueMap valueMap = new ConverterValueMap(reader, context);
@@ -106,7 +108,6 @@ public class ConfigDescriptionParameterConverter extends GenericUnmarshaller<Con
         String label = valueMap.getString("label");
         String description = valueMap.getString("description");
 
-        String groupName = valueMap.getString("groupName");
         Boolean advanced = valueMap.getBoolean("advanced", false);
         Boolean limitToOptions = valueMap.getBoolean("limitToOptions", true);
         Integer multipleLimit = valueMap.getInteger("multipleLimit");

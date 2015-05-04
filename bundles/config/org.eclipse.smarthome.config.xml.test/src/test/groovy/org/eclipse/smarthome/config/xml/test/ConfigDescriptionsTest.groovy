@@ -146,7 +146,7 @@ class ConfigDescriptionsTest extends OSGiTest {
             assertThat multipleLimit, is(4)
         }
         
-        def groups = dummyConfigDescription.groups
+        def groups = dummyConfigDescription.parameterGroups
         assertThat groups.size(), is(2)
 
         ConfigDescriptionParameterGroup group1 = groups.find { it.name.equals("group1") }

@@ -29,22 +29,22 @@ public class ConfigDescriptionGroupI18nUtil {
         this.i18nProvider = i18nProvider;
     }
 
-    public String getGroupDescription(Bundle bundle, URI configDescriptionURI, String parameterName,
+    public String getGroupDescription(Bundle bundle, URI configDescriptionURI, String groupName,
             String defaultDescription, Locale locale) {
         String key = I18nUtil.isConstant(defaultDescription) ? I18nUtil.stripConstant(defaultDescription) : inferKey(
-                configDescriptionURI, parameterName, "description");
+                configDescriptionURI, groupName, "description");
         return i18nProvider.getText(bundle, key, defaultDescription, locale);
     }
 
-    public String getGroupLabel(Bundle bundle, URI configDescriptionURI, String parameterName, String defaultLabel,
+    public String getGroupLabel(Bundle bundle, URI configDescriptionURI, String groupName, String defaultLabel,
             Locale locale) {
         String key = I18nUtil.isConstant(defaultLabel) ? I18nUtil.stripConstant(defaultLabel) : inferKey(
-                configDescriptionURI, parameterName, "label");
+                configDescriptionURI, groupName, "label");
         return i18nProvider.getText(bundle, key, defaultLabel, locale);
     }
 
-    private String inferKey(URI configDescriptionURI, String parameterName, String lastSegment) {
+    private String inferKey(URI configDescriptionURI, String groupName, String lastSegment) {
         String uri = configDescriptionURI.getSchemeSpecificPart().replace(":", ".");
-        return configDescriptionURI.getScheme() + ".config." + uri + "." + parameterName + "." + lastSegment;
+        return configDescriptionURI.getScheme() + ".config." + uri + "." + groupName + "." + lastSegment;
     }
 }

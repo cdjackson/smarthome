@@ -63,7 +63,7 @@ public class ConfigDescriptionReader extends XmlDocumentReader<List<ConfigDescri
         xstream.alias("config-description", ConfigDescription.class);
         xstream.alias("config-description-ref", NodeAttributes.class);
         xstream.alias("parameter", ConfigDescriptionParameter.class);
-        xstream.alias("group", ConfigDescriptionParameterGroup.class);
+        xstream.alias("parameterGroup", ConfigDescriptionParameterGroup.class);
         xstream.alias("options", NodeList.class);
         xstream.alias("option", NodeValue.class);
         xstream.alias("filter", List.class);

@@ -195,7 +195,7 @@ public class XmlConfigDescriptionProvider implements ConfigDescriptionProvider {
             List<ConfigDescriptionParameter> localizedConfigDescriptionParameters = new ArrayList<>(configDescription
                     .getParameters().size());
             List<ConfigDescriptionParameterGroup> localizedConfigDescriptionGroups = new ArrayList<>(configDescription
-                    .getGroups().size());
+                    .getParameterGroups().size());
 
             // Loop through all the configuration parameters and localize them
             for (ConfigDescriptionParameter configDescriptionParameter : configDescription.getParameters()) {
@@ -204,7 +204,7 @@ public class XmlConfigDescriptionProvider implements ConfigDescriptionProvider {
                 localizedConfigDescriptionParameters.add(localizedConfigDescriptionParameter);
             }
             // Loop through all the configuration groups and localize them
-            for (ConfigDescriptionParameterGroup configDescriptionParameterGroup : configDescription.getGroups()) {
+            for (ConfigDescriptionParameterGroup configDescriptionParameterGroup : configDescription.getParameterGroups()) {
                 ConfigDescriptionParameterGroup localizedConfigDescriptionGroup = getLocalizedConfigDescriptionGroup(
                         bundle, configDescription, configDescriptionParameterGroup, locale);
                 localizedConfigDescriptionGroups.add(localizedConfigDescriptionGroup);

@@ -12,7 +12,7 @@ package org.eclipse.smarthome.config.core;
  * A parameter group is used to group a number of parameters together so they can
  * be displayed together in the UI (eg in a single tab).
  * <p>
- * A {@link ConfigDescriptionParameter} instance must also contain the groupId. It should be permissible to use the
+ * A {@link ConfigDescriptionParameter} instance must also contain the groupName. It should be permissible to use the
  * groupId in the {@link ConfigDesctiptionParameter} without supplying a corresponding
  * {@link ConfigDescriptionParameterGroup} - in this way the UI can group the parameters together, but doesn't have the
  * group information.
@@ -32,7 +32,7 @@ public class ConfigDescriptionParameterGroup {
      * Create a Parameter Group. A group is used by the user interface to display groups
      * of parameters together.
      *
-     * @param groupId
+     * @param name
      *            the name, used to link the group, to the parameter
      * @param context
      *            a context string. Can be used to provide some context to the group
@@ -53,9 +53,9 @@ public class ConfigDescriptionParameterGroup {
     }
 
     /**
-     * Get the id of the group.
+     * Get the name of the group.
      *
-     * @return groupId as string
+     * @return groupName as string
      */
     public String getName() {
         return name;

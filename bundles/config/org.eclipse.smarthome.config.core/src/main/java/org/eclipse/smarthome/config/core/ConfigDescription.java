@@ -37,7 +37,7 @@ public class ConfigDescription {
 
     private URI uri;
     private List<ConfigDescriptionParameter> parameters;
-    private List<ConfigDescriptionParameterGroup> groups;
+    private List<ConfigDescriptionParameterGroup> parameterGroups;
 
     /**
      * Creates a new instance of this class with the specified parameter.
@@ -72,6 +72,8 @@ public class ConfigDescription {
      *
      * @param parameters the description of a concrete configuration parameter
      *            (could be null or empty)
+     *            
+     * @param groups the list of groups associated with the parameters
      *
      * @throws IllegalArgumentException if the URI is null or invalid
      */
@@ -96,9 +98,9 @@ public class ConfigDescription {
         }
 
         if (groups != null) {
-            this.groups = Collections.unmodifiableList(groups);
+            this.parameterGroups = Collections.unmodifiableList(groups);
         } else {
-            this.groups = Collections.unmodifiableList(new ArrayList<ConfigDescriptionParameterGroup>(0));
+            this.parameterGroups = Collections.unmodifiableList(new ArrayList<ConfigDescriptionParameterGroup>(0));
         }
     }
 
@@ -130,13 +132,13 @@ public class ConfigDescription {
      *
      * @return the list of parameter groups parameter (not null, could be empty)
      */
-    public List<ConfigDescriptionParameterGroup> getGroups() {
-        return this.groups;
+    public List<ConfigDescriptionParameterGroup> getParameterGroups() {
+        return this.parameterGroups;
     }
 
     @Override
     public String toString() {
-        return "ConfigDescription [uri=" + uri + ", parameters=" + parameters + ", groups=" + groups + "]";
+        return "ConfigDescription [uri=" + uri + ", parameters=" + parameters + ", groups=" + parameterGroups + "]";
     }
 
 }

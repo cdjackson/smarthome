@@ -271,8 +271,7 @@ public class ConfigDescriptionParameter {
     }
 
     /**
-     * @return true if multiple selections of options are allowed, otherwise
-     *         false.
+     * @return the maximum number of options that can be selected from the options list
      */
     public Integer getMultipleLimit() {
         return multipleLimit;

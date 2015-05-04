@@ -91,7 +91,7 @@ public class ThingDescriptionReader extends XmlDocumentReader<List<?>> {
         xstream.alias("config-description", ConfigDescription.class);
         xstream.alias("config-description-ref", NodeAttributes.class);
         xstream.alias("parameter", ConfigDescriptionParameter.class);
-        xstream.alias("group", ConfigDescriptionParameterGroup.class);
+        xstream.alias("parameterGroup", ConfigDescriptionParameterGroup.class);
         xstream.alias("filter", List.class);
         xstream.alias("criteria", FilterCriteria.class);
         xstream.alias("properties", NodeList.class);
