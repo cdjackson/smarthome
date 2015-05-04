@@ -33,19 +33,8 @@
 				<description>Name of a registered hue bridge user, that allows to
 					access the API.
 				</description>
-			</parameter>
-			<config-group group-id="group1">
-				<context>"Context-Group1"</context>
-				<label>Group 1</label>
-				<description>Description Group 1</description>
-				<advanced>false</advanced>
-			</config-group>
-			<config-group group-id="group2">
-				<context>"Context-Group2"</context>
-				<label>Group 2</label>
-				<description>Description Group 2</description>
 				<advanced>true</advanced>
-			</config-group>
+			</parameter>
 		</config-description>
 	</bridge-type>
 
