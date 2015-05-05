@@ -109,8 +109,8 @@ thing-type.yahooweather.weather.description = Stellt verschiedene Wetterdaten vo
 thing-type.config.yahooweather.weather.location.label = Ort
 thing-type.config.yahooweather.weather.location.description = Ort der Wetterinformation.
 
-thing-type.configGroup.yahooweather.weather.group1.label = a label
-thing-type.configGroup.yahooweather.weather.group1.description = a description
+thing-type.config.yahooweather.weather.group.group1.label = a label
+thing-type.config.yahooweather.weather.group.group1.description = a description
 
 
 channel-type.yahooweather.temperature.label = Temperatur
@@ -120,7 +120,7 @@ channel-type.yahooweather.temperature.option.OPTION1 = Option Nummer 1
 channel-type.yahooweather.temperature.option.OPTION2 = Option Nummer 2
 ```
 
-So the key for referencing a label of a defined thing type is `thing-type.<binding-id>.<thing-type-id>.label`. A label of a channel can be referenced with `channel-type.<binding-id>.<channel-type-id>.label`. And finally the config description parameter key is `thing-type.config.<binding-id>.<thing-type-id>.<parameter-name>.label` and the group parameter is `thing-type.configGroup.<binding-id>.<thing-type-id>.<parameter-name>.label`.
+So the key for referencing a label of a defined thing type is `thing-type.<binding-id>.<thing-type-id>.label`. A label of a channel can be referenced with `channel-type.<binding-id>.<channel-type-id>.label`. And finally the config description parameter key is `thing-type.config.<binding-id>.<thing-type-id>.<parameter-name>.label` and the group parameter is `thing-type.config.<binding-id>.group.<thing-type-id>.<parameter-name>.label`.
 
 ### Using custom Keys
 
