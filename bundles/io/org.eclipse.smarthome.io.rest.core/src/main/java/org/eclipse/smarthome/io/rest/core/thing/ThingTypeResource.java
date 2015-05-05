@@ -54,6 +54,7 @@ import org.eclipse.smarthome.io.rest.core.thing.beans.ThingTypeBean;
  * @author Dennis Nobel - Initial contribution
  * @author Kai Kreuzer - refactored for using the OSGi JAX-RS connector
  * @author Thomas Höfer - Added thing and thing type properties
+ * @author Chris Jackson - Added parameter groups, advanced, multipleLimit, limitToOptions
  */
 @Path("thing-types")
 public class ThingTypeResource implements RESTResource {
@@ -211,7 +212,7 @@ public class ThingTypeResource implements RESTResource {
         List<ParameterGroupBean> parameterGroupBeans = new ArrayList<>();
         if (configDescription != null) {
 
-            List<ConfigDescriptionParameterGroup> parameterGroups = configDescription.getGroups();
+            List<ConfigDescriptionParameterGroup> parameterGroups = configDescription.getParameterGroups();
             for (ConfigDescriptionParameterGroup parameterGroup : parameterGroups) {
                 parameterGroupBeans.add(new ParameterGroupBean(parameterGroup.getName(), parameterGroup.getContext(),
                         parameterGroup.isAdvanced(), parameterGroup.getLabel(), parameterGroup.getDescription()));
