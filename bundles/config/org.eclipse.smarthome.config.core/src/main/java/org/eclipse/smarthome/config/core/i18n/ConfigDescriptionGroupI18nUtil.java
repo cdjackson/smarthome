@@ -45,6 +45,6 @@ public class ConfigDescriptionGroupI18nUtil {
 
     private String inferKey(URI configDescriptionURI, String groupName, String lastSegment) {
         String uri = configDescriptionURI.getSchemeSpecificPart().replace(":", ".");
-        return configDescriptionURI.getScheme() + ".configGroup." + uri + "." + groupName + "." + lastSegment;
+        return configDescriptionURI.getScheme() + ".config." + uri + ".group." + groupName + "." + lastSegment;
     }
 }
