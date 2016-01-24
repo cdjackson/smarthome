@@ -124,6 +124,11 @@ public class BleDiscoveryService extends AbstractDiscoveryService {
         DiscoveryResult discoveryResult = DiscoveryResultBuilder.create(thingUID).withProperties(properties)
                 .withLabel(label).build();
 
+        // DiscoveryResult discoveryResult = DiscoveryResultBuilder.create(thingUID)
+        // .withProperty(MaxBinding.PROPERTY_SERIAL_NUMBER, device.getSerialNumber())
+        // .withBridge(bridge.getUID()).withLabel(device.getType() + ": " + device.getName()).build();
+        // thingDiscovered(discoveryResult);
+
         thingDiscovered(discoveryResult);
     }
 
@@ -146,15 +151,17 @@ public class BleDiscoveryService extends AbstractDiscoveryService {
 
             thingTypeUID = BleBindingConstants.THING_TYPE_GENERIC.getAsString();
 
-            if (device.getAddress().equals("A0:14:3D:08:6B:57")) {
-                thingTypeUID = BleBindingConstants.THING_TYPE_PARROT_FLOWERPOWER.getAsString();
-            }
-            if (device.getAddress().equals("B4:99:4C:6F:D1:F4")) {
-                thingTypeUID = BleBindingConstants.THING_TYPE_WIT_ENERGY.getAsString();
-            }
-            if (device.getAddress().equals("54:4A:16:20:4B:AE")) {
-                thingTypeUID = BleBindingConstants.THING_TYPE_YEELIGHT_BLUE.getAsString();
-            }
+            /*
+             * if (device.getAddress().equals("A0:14:3D:08:6B:57")) {
+             * thingTypeUID = BleBindingConstants.THING_TYPE_PARROT_FLOWERPOWER.getAsString();
+             * }
+             * if (device.getAddress().equals("B4:99:4C:6F:D1:F4")) {
+             * thingTypeUID = BleBindingConstants.THING_TYPE_WIT_ENERGY.getAsString();
+             * }
+             * if (device.getAddress().equals("54:4A:16:20:4B:AE")) {
+             * thingTypeUID = BleBindingConstants.THING_TYPE_YEELIGHT_BLUE.getAsString();
+             * }
+             */
 
             String manufacturerName = null;
             BluetoothManufacturer manufacturer = BluetoothManufacturer.getManufacturer(device.getManufacturer());

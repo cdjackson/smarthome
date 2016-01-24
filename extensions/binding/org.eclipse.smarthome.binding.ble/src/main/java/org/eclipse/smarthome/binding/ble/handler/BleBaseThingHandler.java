@@ -64,7 +64,9 @@ public abstract class BleBaseThingHandler extends BaseThingHandler {
     public void initialize() {
         updateStatus(ThingStatus.UNINITIALIZED);
 
-        address = ((String) getConfig().get(BleBindingConstants.PROPERTY_ADDRESS));
+        Map<String, String> properties = getThing().getProperties();
+
+        address = (properties.get(BleBindingConstants.PROPERTY_ADDRESS));
         if (address == null) {
             logger.error("Property 'Address' is not set for {}", getThing().getUID());
             return;
@@ -152,7 +154,7 @@ public abstract class BleBaseThingHandler extends BaseThingHandler {
         return stringValue;
     }
 
-    private String dumpServices() {
+    protected String dumpServices() {
         // Dump a list of services and characteristics
         StringBuilder strOutput = new StringBuilder();
         strOutput.append("Address      : " + device.getAddress() + "\n");
@@ -262,7 +264,7 @@ public abstract class BleBaseThingHandler extends BaseThingHandler {
             if (newState == BluetoothProfile.STATE_CONNECTED) {
                 logger.debug("Connected to {}", address);
                 if (servicesDiscoveryRequested == false && gattClient.discoverServices() == false) {
-                    logger.error("Unable to start GATT discovery for {}", address);
+                    logger.error("Unable to start GATT service discovery for {}", address);
                     return;
                 }
                 servicesDiscoveryRequested = true;

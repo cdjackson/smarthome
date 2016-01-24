@@ -13,7 +13,7 @@ import java.util.Hashtable;
 import java.util.Map;
 
 import org.eclipse.smarthome.binding.ble.BleBindingConstants;
-import org.eclipse.smarthome.binding.ble.handler.BleBaseThingHandler;
+import org.eclipse.smarthome.binding.ble.handler.BleGenericThingHandler;
 import org.eclipse.smarthome.binding.ble.handler.ParrotFlowerPowerThingHandler;
 import org.eclipse.smarthome.binding.ble.handler.WiTEnergyThingHandler;
 import org.eclipse.smarthome.binding.ble.handler.YeelightBlueThingHandler;
@@ -47,7 +47,7 @@ public class BleHandlerFactory extends BaseThingHandlerFactory {
     protected void activate(ComponentContext componentContext) {
         super.activate(componentContext);
 
-        thingHandlers.put(BleBindingConstants.THING_TYPE_GENERIC, BleBaseThingHandler.class);
+        thingHandlers.put(BleBindingConstants.THING_TYPE_GENERIC, BleGenericThingHandler.class);
         thingHandlers.put(BleBindingConstants.THING_TYPE_PARROT_FLOWERPOWER, ParrotFlowerPowerThingHandler.class);
         thingHandlers.put(BleBindingConstants.THING_TYPE_WIT_ENERGY, WiTEnergyThingHandler.class);
         thingHandlers.put(BleBindingConstants.THING_TYPE_YEELIGHT_BLUE, YeelightBlueThingHandler.class);
@@ -87,7 +87,7 @@ public class BleHandlerFactory extends BaseThingHandlerFactory {
                 constructor = handlerClass.getConstructor(Thing.class);
                 return constructor.newInstance(thing);
             } catch (Exception e) {
-                logger.error("Command processor error: {}", e);
+                logger.error("Error calling BLE constructor: {}", e);
             }
         }
 

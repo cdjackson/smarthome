@@ -10,13 +10,7 @@
 		</description>
 
 		<channels>
- 			<channel id="switch-1" typeId="switch">
-				<properties>
-					<property name="characteristic:OnOffType">00001801-0000-1000-8000-00805f9b34fb</property>
-				</properties>
-			</channel>
-			
-            <channel id="rssi" typeId="rssi">
+           <channel id="rssi" typeId="rssi">
             </channel>
 		</channels>
 
