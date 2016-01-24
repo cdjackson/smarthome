@@ -20,6 +20,8 @@ import java.util.concurrent.CopyOnWriteArraySet;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeoutException;
 
+import org.eclipse.smarthome.config.core.ConfigDescriptionRegistry;
+import org.eclipse.smarthome.config.core.Configuration;
 import org.eclipse.smarthome.core.common.SafeMethodCaller;
 import org.eclipse.smarthome.core.common.ThreadPoolManager;
 import org.eclipse.smarthome.core.events.EventPublisher;
@@ -29,6 +31,7 @@ import org.eclipse.smarthome.core.items.events.ItemCommandEvent;
 import org.eclipse.smarthome.core.items.events.ItemEventFactory;
 import org.eclipse.smarthome.core.items.events.ItemStateEvent;
 import org.eclipse.smarthome.core.thing.Bridge;
+import org.eclipse.smarthome.core.thing.Channel;
 import org.eclipse.smarthome.core.thing.ChannelUID;
 import org.eclipse.smarthome.core.thing.ManagedThingProvider;
 import org.eclipse.smarthome.core.thing.Thing;
@@ -36,6 +39,7 @@ import org.eclipse.smarthome.core.thing.ThingRegistry;
 import org.eclipse.smarthome.core.thing.ThingStatus;
 import org.eclipse.smarthome.core.thing.ThingStatusDetail;
 import org.eclipse.smarthome.core.thing.ThingStatusInfo;
+import org.eclipse.smarthome.core.thing.ThingTypeUID;
 import org.eclipse.smarthome.core.thing.ThingUID;
 import org.eclipse.smarthome.core.thing.binding.ThingHandler;
 import org.eclipse.smarthome.core.thing.binding.ThingHandlerCallback;
@@ -44,6 +48,8 @@ import org.eclipse.smarthome.core.thing.binding.builder.ThingStatusInfoBuilder;
 import org.eclipse.smarthome.core.thing.events.ThingEventFactory;
 import org.eclipse.smarthome.core.thing.link.ItemChannelLinkRegistry;
 import org.eclipse.smarthome.core.thing.link.ItemThingLinkRegistry;
+import org.eclipse.smarthome.core.thing.type.ThingType;
+import org.eclipse.smarthome.core.thing.type.ThingTypeRegistry;
 import org.eclipse.smarthome.core.types.Command;
 import org.eclipse.smarthome.core.types.State;
 import org.osgi.framework.BundleContext;
@@ -236,6 +242,44 @@ public class ThingManager extends AbstractItemEventSubscriber implements ThingTr
             }
         }
 
+        @Override
+        public void changeThingType(Thing thing, ThingTypeUID thingTypeUID, Configuration configuration) {
+            ThingUID thingUID = thing.getUID();
+            ThingType thingType = thingTypeRegistry.getThingType(thingTypeUID);
+
+            // Remove the ThingHandler
+            final ThingHandlerFactory oldThingHandlerFactory = findThingHandlerFactory(thing.getThingTypeUID());
+            if (oldThingHandlerFactory != null) {
+                unregisterHandler(thing, oldThingHandlerFactory);
+            }
+
+            /*
+             * // Remove the links
+             * thingLinkManager.thingRemoved(thing);
+             */
+
+            // Set the new channels
+            List<Channel> channels = ThingFactoryHelper.createChannels(thingType, thingUID, configDescriptionRegistry);
+            ((ThingImpl) thing).setChannels(channels);
+
+            // Set the given configuration
+            ThingFactoryHelper.applyDefaultConfiguration(configuration, thingType, configDescriptionRegistry);
+            ((ThingImpl) thing).setConfiguration(configuration);
+
+            // Change the ThingType
+            ((ThingImpl) thing).setThingTypeUID(thingTypeUID);
+
+            /*
+             * // Establish links
+             * thingLinkManager.thingAdded(thing);
+             */
+
+            // Register the new Handler
+            registerHandler(thing);
+
+            ThingManager.this.thingUpdated(thing, null);
+        }
+
     };
 
     private ItemRegistry itemRegistry;
@@ -395,7 +439,7 @@ public class ThingManager extends AbstractItemEventSubscriber implements ThingTr
         ThingUID thingId = thing.getUID();
         ThingHandler thingHandler = thingHandlers.get(thingId);
         if (thingHandler != null) {
-            final ThingHandlerFactory thingHandlerFactory = findThingHandlerFactory(thing);
+            final ThingHandlerFactory thingHandlerFactory = findThingHandlerFactory(thing.getThingTypeUID());
             if (thingHandlerFactory != null) {
                 unregisterHandler(thing, thingHandlerFactory);
                 if (thingTrackerEvent == ThingTrackerEvent.THING_REMOVED) {
@@ -465,7 +509,7 @@ public class ThingManager extends AbstractItemEventSubscriber implements ThingTr
         // this check is needed to prevent infinite loops while a handler is initialized
         if (!registerHandlerLock.contains(thingUID)) {
             registerHandlerLock.add(thingUID);
-            ThingHandlerFactory thingHandlerFactory = findThingHandlerFactory(thing);
+            ThingHandlerFactory thingHandlerFactory = findThingHandlerFactory(thing.getThingTypeUID());
             if (thingHandlerFactory != null) {
                 registerHandler(thing, thingHandlerFactory);
             } else {
@@ -476,9 +520,9 @@ public class ThingManager extends AbstractItemEventSubscriber implements ThingTr
         }
     }
 
-    private ThingHandlerFactory findThingHandlerFactory(Thing thing) {
+    private ThingHandlerFactory findThingHandlerFactory(ThingTypeUID thingTypeUID) {
         for (ThingHandlerFactory factory : thingHandlerFactories) {
-            if (factory.supportsThingType(thing.getThingTypeUID())) {
+            if (factory.supportsThingType(thingTypeUID)) {
                 return factory;
             }
         }
@@ -659,6 +703,25 @@ public class ThingManager extends AbstractItemEventSubscriber implements ThingTr
         } catch (Exception ex) {
             logger.error("Could not post 'ThingStatusInfoEvent' event: " + ex.getMessage(), ex);
         }
+    }
+
+    private ThingTypeRegistry thingTypeRegistry;
+    private ConfigDescriptionRegistry configDescriptionRegistry;
+
+    protected void setConfigDescriptionRegistry(ConfigDescriptionRegistry configDescriptionRegistry) {
+        this.configDescriptionRegistry = configDescriptionRegistry;
+    }
+
+    protected void unsetConfigDescriptionRegistry(ConfigDescriptionRegistry configDescriptionRegistry) {
+        this.configDescriptionRegistry = null;
+    }
+
+    protected void setThingTypeRegistry(ThingTypeRegistry thingTypeRegistry) {
+        this.thingTypeRegistry = thingTypeRegistry;
+    }
+
+    protected void unsetThingTypeRegistry(ThingTypeRegistry thingTypeRegistry) {
+        this.thingTypeRegistry = null;
     }
 
 }
