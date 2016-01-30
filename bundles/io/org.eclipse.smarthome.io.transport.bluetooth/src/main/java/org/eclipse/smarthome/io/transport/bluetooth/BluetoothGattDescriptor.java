@@ -23,7 +23,7 @@ import org.eclipse.smarthome.io.transport.bluetooth.internal.BluetoothConstants;
 public class BluetoothGattDescriptor {
     protected BluetoothGattCharacteristic characteristic;
     protected UUID uuid;
-    protected byte[] value;
+    protected byte[] value = new byte[0];
 
     /**
      * Returns the characteristic this descriptor belongs to.
