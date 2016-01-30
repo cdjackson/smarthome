@@ -149,6 +149,7 @@ public class BleDiscoveryService extends AbstractDiscoveryService {
                 label = BleBindingConstants.THING_NAME_GENERIC;
             }
 
+            // thingTypeUID = BleBindingConstants.THING_TYPE_YEELIGHT_BLUE.getAsString();
             thingTypeUID = BleBindingConstants.THING_TYPE_GENERIC.getAsString();
 
             /*

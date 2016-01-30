@@ -235,6 +235,34 @@ public abstract class BleBaseThingHandler extends BaseThingHandler {
         return strOutput.toString();
     }
 
+    protected boolean requestServices() {
+        boolean requestsMade = false;
+
+        // Request all characteristics and descriptors
+        for (BluetoothGattService service : gattClient.getServices()) {
+            for (BluetoothGattCharacteristic characteristic : service.getCharacteristics()) {
+                // If this characteristic supports READ, then read it
+                if (characteristic.getValue().length == 0
+                        & (characteristic.getProperties() & BluetoothGattCharacteristic.PROPERTY_READ) != 0) {
+                    requestsMade = true;
+                    logger.debug("Requesting CHARACTERISTIC {} {}", address, characteristic.getUuid());
+                    gattClient.readCharacteristic(characteristic);
+                }
+
+                // Loop through the descriptors
+                for (BluetoothGattDescriptor descriptor : characteristic.getDescriptors()) {
+                    if (descriptor.getValue().length == 0) {
+                        requestsMade = true;
+                        logger.debug("Requesting DESCRIPTOR {} {}", address, descriptor.getUuid());
+                        gattClient.readDescriptor(descriptor);
+                    }
+                }
+            }
+        }
+
+        return requestsMade;
+    }
+
     private void processStandardCharacteristics(BluetoothGattCharacteristic characteristic) {
         // Process any common characteristics
         if (characteristic.getUuid().equals(BluetoothGattCharacteristic.GattCharacteristic.BATTERY_LEVEL.getUUID())) {
@@ -288,18 +316,7 @@ public abstract class BleBaseThingHandler extends BaseThingHandler {
                 logger.debug("Bluetooth BLE device services discovered for {}\n{}", address, dumpServices());
 
                 // Request all characteristics and descriptors
-                for (BluetoothGattService service : gattClient.getServices()) {
-                    for (BluetoothGattCharacteristic characteristic : service.getCharacteristics()) {
-                        if ((characteristic.getProperties() & BluetoothGattCharacteristic.PROPERTY_READ) != 0) {
-                            logger.debug("Requesting CHARACTERISTIC {} {}", address, characteristic.getUuid());
-                            gatt.readCharacteristic(characteristic);
-                        }
-                        for (BluetoothGattDescriptor descriptor : characteristic.getDescriptors()) {
-                            logger.debug("Requesting DESCRIPTOR {} {}", address, descriptor.getUuid());
-                            gatt.readDescriptor(descriptor);
-                        }
-                    }
-                }
+                requestServices();
             }
 
             handleServicesDiscovered(status);

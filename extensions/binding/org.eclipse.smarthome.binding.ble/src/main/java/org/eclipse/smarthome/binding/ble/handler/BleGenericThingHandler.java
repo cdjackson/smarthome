@@ -7,6 +7,8 @@
  */
 package org.eclipse.smarthome.binding.ble.handler;
 
+import org.eclipse.smarthome.binding.ble.BleBindingConstants;
+import org.eclipse.smarthome.config.core.Configuration;
 import org.eclipse.smarthome.core.thing.ChannelUID;
 import org.eclipse.smarthome.core.thing.Thing;
 import org.eclipse.smarthome.core.thing.ThingStatus;
@@ -97,6 +99,17 @@ public class BleGenericThingHandler extends BleBaseThingHandler {
     private void discoveryComplete() {
         if (gattClient.getQueueLength() == 0) {
             logger.debug("Queue is empty.\n{}", dumpServices());
+
+            // Check if everything has been received
+            if (requestServices() == true) {
+                return;
+            }
+
+            // Decide the new thing type
+
+            // Change the thing type
+            Configuration configuration = new Configuration();// ['providedspecific':'there']);
+            changeThingType(BleBindingConstants.THING_TYPE_YEELIGHT_BLUE, configuration);
         }
 
     }
