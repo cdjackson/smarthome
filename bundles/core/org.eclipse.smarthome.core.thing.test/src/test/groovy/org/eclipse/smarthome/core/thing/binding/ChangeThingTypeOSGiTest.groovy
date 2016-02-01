@@ -16,12 +16,16 @@ import org.eclipse.smarthome.config.core.ConfigDescriptionParameterBuilder
 import org.eclipse.smarthome.config.core.ConfigDescriptionProvider
 import org.eclipse.smarthome.config.core.ConfigDescriptionRegistry
 import org.eclipse.smarthome.config.core.Configuration
+import org.eclipse.smarthome.core.items.ManagedItemProvider
+import org.eclipse.smarthome.core.library.items.StringItem
 import org.eclipse.smarthome.core.thing.ChannelUID
 import org.eclipse.smarthome.core.thing.ManagedThingProvider
 import org.eclipse.smarthome.core.thing.Thing
 import org.eclipse.smarthome.core.thing.ThingStatus
 import org.eclipse.smarthome.core.thing.ThingTypeUID
 import org.eclipse.smarthome.core.thing.ThingUID
+import org.eclipse.smarthome.core.thing.link.ItemChannelLink
+import org.eclipse.smarthome.core.thing.link.ManagedItemChannelLinkProvider
 import org.eclipse.smarthome.core.thing.type.ChannelDefinition
 import org.eclipse.smarthome.core.thing.type.ChannelGroupType
 import org.eclipse.smarthome.core.thing.type.ChannelGroupTypeUID
@@ -52,6 +56,12 @@ class ChangeThingTypeOSGiTest extends OSGiTest {
     final static ThingTypeUID THING_TYPE_GENERIC_UID = new ThingTypeUID(BINDING_ID, THING_TYPE_GENERIC_ID)
     final static ThingTypeUID THING_TYPE_SPECIFIC_UID = new ThingTypeUID(BINDING_ID, THING_TYPE_SPECIFIC_ID)
     final static String THING_ID = "testThing"
+    final static ChannelUID CHANNEL_GENERIC_UID = new ChannelUID(BINDING_ID + ":" + THING_TYPE_GENERIC_ID + ":" + THING_ID + ":" + "channel" + THING_TYPE_GENERIC_ID)
+    final static ChannelUID CHANNEL_SPECIFIC_UID = new ChannelUID(BINDING_ID + ":" + THING_TYPE_SPECIFIC_ID + ":" + THING_ID + ":" + "channel" + THING_TYPE_SPECIFIC_ID)
+    final static String ITEM_GENERIC = "item" + THING_TYPE_GENERIC_ID;
+    final static String ITEM_SPECIFIC = "item" + THING_TYPE_SPECIFIC_ID;
+    final static ItemChannelLink ITEM_CHANNEL_LINK_GENERIC = new ItemChannelLink(ITEM_GENERIC,  CHANNEL_GENERIC_UID)
+    final static ItemChannelLink ITEM_CHANNEL_LINK_SPECIFIC = new ItemChannelLink(ITEM_SPECIFIC,  CHANNEL_SPECIFIC_UID)
 
     def Map<ThingTypeUID, ThingType> thingTypes = new HashMap<>()
     def Map<URI, ConfigDescription> configDescriptions = new HashMap<>()
@@ -59,6 +69,8 @@ class ChangeThingTypeOSGiTest extends OSGiTest {
     def Map<ChannelGroupTypeUID, ChannelGroupType> channelGroupTypes = new HashMap<>()
     def ComponentContext componentContext
     def ConfigDescriptionRegistry configDescriptionRegistry
+    def ManagedItemChannelLinkProvider managedItemChannelLinkProvider
+    def ManagedItemProvider managedItemProvider
 
     def ThingType thingTypeGeneric
     def ThingType thingTypeSpecific
@@ -72,6 +84,12 @@ class ChangeThingTypeOSGiTest extends OSGiTest {
 
         configDescriptionRegistry = getService(ConfigDescriptionRegistry)
         assertThat configDescriptionRegistry, is(notNullValue())
+
+        managedItemChannelLinkProvider = getService ManagedItemChannelLinkProvider
+        assertThat managedItemChannelLinkProvider, is(notNullValue())
+
+        managedItemProvider = getService ManagedItemProvider
+        assertThat managedItemProvider, is(notNullValue())
 
         componentContext = [getBundleContext: { bundleContext }] as ComponentContext
         thingHandlerFactory = new SampleThingHandlerFactory()
@@ -109,6 +127,12 @@ class ChangeThingTypeOSGiTest extends OSGiTest {
                 channelGroupTypes.get(uid)
             },
         ] as ChannelTypeProvider)
+
+        managedItemProvider.add(new StringItem(ITEM_GENERIC))
+        managedItemProvider.add(new StringItem(ITEM_SPECIFIC))
+
+        managedItemChannelLinkProvider.add ITEM_CHANNEL_LINK_GENERIC
+        managedItemChannelLinkProvider.add ITEM_CHANNEL_LINK_SPECIFIC
     }
 
     @After
@@ -122,6 +146,14 @@ class ChangeThingTypeOSGiTest extends OSGiTest {
 
         managedThingProvider.getAll().each {
             managedThingProvider.remove(it.getUID())
+        }
+
+        managedItemProvider.getAll().each {
+            managedItemProvider.remove(it.getName())
+        }
+
+        managedItemChannelLinkProvider.getAll().each {
+            managedItemChannelLinkProvider.remove(it.getUID().toString())
         }
     }
 
@@ -168,7 +200,7 @@ class ChangeThingTypeOSGiTest extends OSGiTest {
     }
 
     @Test
-    void 'assert TBD'() {
+    void 'assert changing the ThingType works'() {
         def thing = ThingFactory.createThing(thingTypeGeneric, new ThingUID("testBinding", "testThing"), new Configuration(), null, configDescriptionRegistry)
         thing.setProperty("universal", "survives")
         managedThingProvider.add(thing)
@@ -176,8 +208,9 @@ class ChangeThingTypeOSGiTest extends OSGiTest {
         // Pre-flight checks - see below
         assertThat thing.getHandler(), isA(GenericThingHandler)
         assertThat thing.getConfiguration().get("parametergeneric"), is("defaultgeneric")
+        assertThat thing.getConfiguration().get("providedspecific"), is(nullValue())
         assertThat thing.getChannels().size(), is(1)
-        assertThat thing.getChannels().get(0).getUID().getId(), containsString("generic")
+        assertThat thing.getChannels().get(0).getUID(), is (CHANNEL_GENERIC_UID)
         assertThat thing.getProperties().get("universal"), is("survives")
         def handlerOsgiService = getService(ThingHandler, {
             it.getProperty(ThingHandler.SERVICE_PROPERTY_THING_ID).toString() == "testBinding::testThing"
@@ -185,6 +218,9 @@ class ChangeThingTypeOSGiTest extends OSGiTest {
         assertThat handlerOsgiService, is(thing.getHandler())
         thing.getHandler().handleCommand(null, null)
         assertThat thing.getStatus(), is(ThingStatus.ONLINE)
+
+        assertThat thing.getChannels().get(0).getLinkedItems().size(), is(1)
+        assertThat thing.getChannels().get(0).getLinkedItems().iterator().next().getName(), is(ITEM_GENERIC)
 
         // Now do the actual migration
         thing.getHandler().changeThingType(THING_TYPE_SPECIFIC_UID, new Configuration(['providedspecific':'there']))
@@ -209,6 +245,11 @@ class ChangeThingTypeOSGiTest extends OSGiTest {
         assertThat handlerOsgiService2, is(thing.getHandler())
         thing.getHandler().handleCommand(null, null)
 
+        // Ensure items links have been updated
+        assertThat thing.getChannels().get(0).getLinkedItems().size(), is(1)
+        assertThat thing.getChannels().get(0).getLinkedItems().iterator().next().getName(), is(ITEM_SPECIFIC)
+
+
         // Ensure the Thing is ONLINE again
         assertThat thing.getStatus(), is(ThingStatus.ONLINE)
 
@@ -219,7 +260,7 @@ class ChangeThingTypeOSGiTest extends OSGiTest {
         def thingType = new ThingType(thingTypeUID, null, "label", null, getChannelDefinitions(thingTypeUID), null, null, configDescriptionUri)
         def configDescription = new ConfigDescription(configDescriptionUri, [
             ConfigDescriptionParameterBuilder.create("parameter"+thingTypeUID.getId(), ConfigDescriptionParameter.Type.TEXT).withRequired(true).withDefault("default"+thingTypeUID.getId()).build(),
-            ConfigDescriptionParameterBuilder.create("provided"+thingTypeUID.getId(), ConfigDescriptionParameter.Type.TEXT).withRequired(true).build()
+            ConfigDescriptionParameterBuilder.create("provided"+thingTypeUID.getId(), ConfigDescriptionParameter.Type.TEXT).withRequired(false).build()
         ] as List);
 
         thingTypes.put(thingTypeUID, thingType)
