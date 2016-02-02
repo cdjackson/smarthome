@@ -517,13 +517,13 @@ public abstract class BaseThingHandler implements ThingHandler {
 
     /**
      * Returns whether the thing has already been initialized.
-     * 
+     *
      * @return true if thing is initialized, false otherwise
      */
     protected boolean thingIsInitialized() {
         return getThing().getStatus() == ThingStatus.ONLINE || getThing().getStatus() == ThingStatus.OFFLINE;
     }
-    
+
     @Override
     public void bridgeHandlerInitialized(ThingHandler thingHandler, Bridge bridge) {
         // do nothing by default, can be overridden by subclasses
@@ -532,14 +532,6 @@ public abstract class BaseThingHandler implements ThingHandler {
     @Override
     public void bridgeHandlerDisposed(ThingHandler thingHandler, Bridge bridge) {
         // do nothing by default, can be overridden by subclasses
-    }
-
-    protected void changeThingType(ThingTypeUID thingTypeUID, Configuration configuration) {
-        if (this.callback != null) {
-            this.callback.changeThingType(getThing(), thingTypeUID, configuration);
-        } else {
-            throw new IllegalStateException("Could change thing type because callback is missing");
-        }
     }
 
     protected void changeThingType(ThingTypeUID thingTypeUID, Configuration configuration) {
