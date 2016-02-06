@@ -20,11 +20,12 @@ import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.CopyOnWriteArraySet;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 
 import org.eclipse.smarthome.config.core.ConfigDescription;
 import org.eclipse.smarthome.config.core.ConfigDescriptionParameter;
-import org.eclipse.smarthome.config.core.ConfigDescriptionRegistry;
 import org.eclipse.smarthome.config.core.ConfigDescriptionRegistry;
 import org.eclipse.smarthome.config.core.Configuration;
 import org.eclipse.smarthome.core.common.SafeMethodCaller;
@@ -131,6 +132,8 @@ public class ThingManager extends AbstractItemEventSubscriber implements ThingTr
 
     private Logger logger = LoggerFactory.getLogger(ThingManager.class);
 
+    private final ScheduledExecutorService scheduler = ThreadPoolManager.getScheduledPool("thingManager");
+
     private BundleContext bundleContext;
 
     private EventPublisher eventPublisher;
@@ -228,34 +231,39 @@ public class ThingManager extends AbstractItemEventSubscriber implements ThingTr
         }
 
         @Override
-        public void changeThingType(Thing thing, ThingTypeUID thingTypeUID, Configuration configuration) {
-            ThingUID thingUID = thing.getUID();
-            ThingType thingType = thingTypeRegistry.getThingType(thingTypeUID);
+        public void changeThingType(final Thing thing, final ThingTypeUID thingTypeUID,
+                final Configuration configuration) {
+            scheduler.schedule(new Runnable() {
+                @Override
+                public void run() {
+                    ThingUID thingUID = thing.getUID();
+                    ThingType thingType = thingTypeRegistry.getThingType(thingTypeUID);
 
-            // Remove the ThingHandler
-            final ThingHandlerFactory oldThingHandlerFactory = findThingHandlerFactory(thing.getThingTypeUID());
-            if (oldThingHandlerFactory != null) {
-                unregisterHandler(thing, oldThingHandlerFactory);
-            }
+                    // Remove the ThingHandler
+                    final ThingHandlerFactory oldThingHandlerFactory = findThingHandlerFactory(thing.getThingTypeUID());
+                    if (oldThingHandlerFactory != null) {
+                        unregisterHandler(thing, oldThingHandlerFactory);
+                    }
 
-            // Set the new channels
-            List<Channel> channels = ThingFactoryHelper.createChannels(thingType, thingUID, configDescriptionRegistry);
-            ((ThingImpl) thing).setChannels(channels);
+                    // Set the new channels
+                    List<Channel> channels = ThingFactoryHelper.createChannels(thingType, thingUID,
+                            configDescriptionRegistry);
+                    ((ThingImpl) thing).setChannels(channels);
 
-            // Set the given configuration
-            ThingFactoryHelper.applyDefaultConfiguration(configuration, thingType, configDescriptionRegistry);
-            ((ThingImpl) thing).setConfiguration(configuration);
+                    // Set the given configuration
+                    ThingFactoryHelper.applyDefaultConfiguration(configuration, thingType, configDescriptionRegistry);
+                    ((ThingImpl) thing).setConfiguration(configuration);
 
-            // Change the ThingType
-            ((ThingImpl) thing).setThingTypeUID(thingTypeUID);
+                    // Change the ThingType
+                    ((ThingImpl) thing).setThingTypeUID(thingTypeUID);
 
-            // Register the new Handler
-            registerHandler(thing);
+                    // Register the new Handler - ThingManager.updateThing() is going to take care of that
+                    ThingManager.this.thingUpdated(thing, null);
 
-            ThingManager.this.thingUpdated(thing, null);
-
-            logger.debug("Changed ThingType of Thing {} to {}. New ThingHandler is {}.", thing.getUID().toString(),
-                    thing.getThingTypeUID(), thing.getHandler().toString());
+                    logger.debug("Changed ThingType of Thing {} to {}. New ThingHandler is {}.",
+                            thing.getUID().toString(), thing.getThingTypeUID(), thing.getHandler().toString());
+                }
+            }, 0, TimeUnit.MILLISECONDS);
         }
 
     };
@@ -521,6 +529,8 @@ public class ThingManager extends AbstractItemEventSubscriber implements ThingTr
                         thingUID);
             }
             registerHandlerLock.remove(thingUID);
+        } else {
+            logger.warn("Attempt to register a handler twice for thing {} at the same time will be ignored.", thingUID);
         }
     }
 
@@ -776,8 +786,14 @@ public class ThingManager extends AbstractItemEventSubscriber implements ThingTr
             @Override
             public void run() {
                 try {
-                    thing.getHandler().handleRemoval();
-                    logger.trace("Handler of thing '{}' returned from handling its removal.", thing.getUID());
+                    ThingHandler handler = thing.getHandler();
+                    if (handler != null) {
+                        handler.handleRemoval();
+                        logger.trace("Handler of thing '{}' returned from handling its removal.", thing.getUID());
+                    } else {
+                        logger.trace("No handler of thing '{}' available, so deferring the removal call.",
+                                thing.getUID());
+                    }
                 } catch (Exception ex) {
                     logger.error("The ThingHandler caused an exception while handling the removal of its thing", ex);
                 }

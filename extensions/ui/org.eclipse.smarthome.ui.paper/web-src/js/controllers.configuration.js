@@ -67,7 +67,7 @@ angular.module('PaperUI.controllers.configuration',
         $scope.expertMode = false;
         configDescriptionService.getByUri({uri: configDescriptionURI}, function(configDescription) {
             if(configDescription) {
-                $scope.parameters = configService.getRenderingModel(configDescription.parameters);
+                $scope.parameters = configService.getRenderingModel(configDescription.parameters, configDescription.parameterGroups);
             }
         });
     }
@@ -177,7 +177,7 @@ angular.module('PaperUI.controllers.configuration',
 		$scope.expertMode = false;
 		configDescriptionService.getByUri({uri: configDescriptionURI}, function(configDescription) {
 			if(configDescription) {
-				$scope.parameters = configService.getRenderingModel(configDescription.parameters);
+				$scope.parameters = configService.getRenderingModel(configDescription.parameters, configDescription.parameterGroups);
 			}
 		});
 	}
@@ -472,7 +472,7 @@ angular.module('PaperUI.controllers.configuration',
         $mdDialog.hide(itemName);
     }
 }).controller('EditThingController', function($scope, $mdDialog, toastService, 
-		thingTypeRepository, thingRepository, thingSetupService, homeGroupRepository, configService) {
+		thingTypeRepository, thingRepository, thingSetupService, homeGroupRepository, configService, thingService) {
 	
 	$scope.setHeaderText('Click the \'Save\' button to apply the changes.');
 	
@@ -501,8 +501,10 @@ angular.module('PaperUI.controllers.configuration',
 		} else {
 		    thing.item = {};
         }
-		thingSetupService.update(thing, function() {
-	        thingRepository.update(thing);
+		thingService.updateConfig({
+			thingUID : thing.UID
+		}, thing.configuration, function() {
+			thingRepository.update(thing);
 			toastService.showDefaultToast('Thing updated');
 			$scope.navigateTo('things/view/' + thing.UID);
 		});
@@ -529,7 +531,7 @@ angular.module('PaperUI.controllers.configuration',
             return thingType.UID === $scope.thingTypeUID;
         }, function(thingType) {
             $scope.thingType = thingType;
-            $scope.parameters = configService.getRenderingModel(thingType.configParameters);
+            $scope.parameters = configService.getRenderingModel(thingType.configParameters, thingType.parameterGroups);;
             $scope.needsBridge = $scope.thingType.supportedBridgeTypeUIDs && $scope.thingType.supportedBridgeTypeUIDs.length > 0;
             if($scope.needsBridge) {
                 $scope.getBridges();
