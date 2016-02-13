@@ -244,4 +244,11 @@ public abstract class BluetoothAdapter {
         return state;
     }
 
+    /**
+     *
+     */
+    public boolean getProfileProxy(BluetoothProfile.ServiceListener listener, int profile) {
+        return false;
+    }
+
 }

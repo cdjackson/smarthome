@@ -16,6 +16,7 @@ import org.eclipse.smarthome.io.transport.bluetooth.BluetoothClass;
 import org.eclipse.smarthome.io.transport.bluetooth.BluetoothDevice;
 import org.eclipse.smarthome.io.transport.bluetooth.BluetoothGatt;
 import org.eclipse.smarthome.io.transport.bluetooth.BluetoothGattCallback;
+import org.eclipse.smarthome.io.transport.bluetooth.BluetoothProfile;
 import org.eclipse.smarthome.io.transport.bluetooth.bluez.internal.dbus.Device1;
 import org.eclipse.smarthome.io.transport.bluetooth.bluez.internal.dbus.Properties.PropertiesChanged;
 import org.eclipse.smarthome.io.transport.bluetooth.events.BluetoothDeviceBondingEvent;
@@ -138,6 +139,15 @@ public class BluezBluetoothDevice extends BluetoothDevice implements DBusSigHand
         adapter.notifyEventListeners(new BluetoothDeviceBondingEvent(this, bondState));
 
         return true;
+    }
+
+    @Override
+    public BluetoothProfile getProfile(int profile) {
+        switch (profile) {
+            case BluetoothProfile.A2DP:
+                return new BluezBluetoothA2dp(adapter, address);
+        }
+        return null;
     }
 
     @Override

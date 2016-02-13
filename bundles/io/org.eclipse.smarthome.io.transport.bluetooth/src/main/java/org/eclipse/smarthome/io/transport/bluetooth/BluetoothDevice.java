@@ -182,4 +182,13 @@ public abstract class BluetoothDevice {
         return manufacturer;
     }
 
+    /**
+     *
+     * @param profile
+     * @return
+     */
+    public BluetoothProfile getProfile(int profile) {
+        return null;
+    }
+
 }

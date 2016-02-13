@@ -67,5 +67,11 @@ public class BluezBluetoothConstants {
     public final static Object BLUEZ_DBUS_SIGNAL_PROPERTIESCHANGED = "PropertiesChanged";
     public final static Object BLUEZ_DBUS_SIGNAL_INTERFACESADDED = "InterfacesAdded";
 
+    public static final byte SBC_CODEC = 0;
+    public static final byte[] SBC_CAPABILITIES = new byte[] { (byte) 0xff, (byte) 0xff, (byte) 0x02, (byte) 0x40 };
+
+    public static final byte MP3_CODEC = 1;
+    public static final byte[] MP3_CAPABILITIES = new byte[] { (byte) 0x3f, (byte) 0x07, (byte) 0xff, (byte) 0xfe };
+
     public static final long bleUuid = 0x800000805f9b34fbL;
 }

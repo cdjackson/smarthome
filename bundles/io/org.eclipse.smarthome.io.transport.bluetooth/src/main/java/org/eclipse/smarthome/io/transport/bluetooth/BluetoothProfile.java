@@ -7,6 +7,7 @@
  */
 package org.eclipse.smarthome.io.transport.bluetooth;
 
+import java.util.List;
 import java.util.UUID;
 
 /**
@@ -33,6 +34,9 @@ public interface BluetoothProfile {
     public final static UUID PROFILE_HFP = UUID.fromString("0000111e-0000-1000-8000-00805f9b34fb");
     public final static UUID PROFILE_HFP_AUDIOGATEWAY = UUID.fromString("0000111f-0000-1000-8000-00805f9b34fb");
 
+    // Profile definitions
+    public final static int A2DP = 1;
+
     /**
      * Get the current connection state
      *
@@ -40,4 +44,32 @@ public interface BluetoothProfile {
      * @return
      */
     abstract int getConnectionState(BluetoothDevice device);
+
+    /**
+     * Gets a list of devices supporting the requested profile
+     *
+     * @return
+     */
+    abstract List<BluetoothDevice> getConnectedDevices();
+
+    /**
+     * Interface to provide callback notifications when a device connects or disconnects from a Bluetooth profile
+     *
+     */
+    public static interface ServiceListener {
+        /**
+         * Called to notify the client when a device has connected to the service
+         *
+         * @param profile
+         * @param proxy
+         */
+        abstract void onServiceConnected(int profile, BluetoothProfile proxy);
+
+        /**
+         * Called to notify the client when a device has disconnected from the service
+         *
+         * @param profile
+         */
+        abstract void onServiceDisconnected(int profile);
+    }
 }
