@@ -145,7 +145,7 @@ public class BluezBluetoothDevice extends BluetoothDevice implements DBusSigHand
     public BluetoothProfile getProfile(int profile) {
         switch (profile) {
             case BluetoothProfile.A2DP:
-                return new BluezBluetoothA2dp(adapter, address);
+                return new BluezBluetoothA2dp(this);
         }
         return null;
     }

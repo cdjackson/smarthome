@@ -20,6 +20,7 @@ import org.eclipse.smarthome.io.transport.bluetooth.BluetoothAdapter;
 import org.eclipse.smarthome.io.transport.bluetooth.BluetoothDevice;
 import org.eclipse.smarthome.io.transport.bluetooth.BluetoothManager;
 import org.eclipse.smarthome.io.transport.bluetooth.BluetoothProfile;
+import org.eclipse.smarthome.io.transport.bluetooth.BluetoothProfile.ServiceListener;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -77,8 +78,31 @@ public class BluetoothHandler extends BaseThingHandler {
             return;
         }
 
-        a2dp = (BluetoothA2dp) device.getProfile(BluetoothProfile.A2DP);
+        // a2dp = (BluetoothA2dp) device.getProfile(BluetoothProfile.A2DP);
+        // a2dp.connect()
 
-        updateStatus(ThingStatus.ONLINE);
+        ProxyListener listener = new ProxyListener();
+        adapter.getProfileProxy(listener, BluetoothProfile.A2DP);
+        updateStatus(ThingStatus.OFFLINE);
+    }
+
+    class ProxyListener implements ServiceListener {
+
+        @Override
+        public void onServiceConnected(int profile, BluetoothProfile proxy) {
+            if (profile != BluetoothProfile.A2DP) {
+                return;
+            }
+
+            BluetoothA2dp a2dp = (BluetoothA2dp) proxy;
+            // if(proxy.g)
+        }
+
+        @Override
+        public void onServiceDisconnected(int profile) {
+            // TODO Auto-generated method stub
+
+        }
+
     }
 }
