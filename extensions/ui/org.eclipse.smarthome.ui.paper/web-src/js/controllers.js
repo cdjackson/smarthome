@@ -38,7 +38,7 @@ angular.module('PaperUI.controllers', ['PaperUI.constants']).controller('BodyCon
 
     var numberOfInboxEntries = -1;
     eventService.onEvent('smarthome/inbox/*/added', function(topic, discoveryResult) {
-    	toastService.showDefaultToast('New Inbox Entry: ' + discoveryResult.label, 'Show Inbox', 'setup/wizard');
+    	toastService.showDefaultToast('New Inbox Entry: ' + discoveryResult.label, 'Show Inbox', 'inbox/setup');
 	});
     eventService.onEvent('smarthome/items/*/state', function(topic, stateObject) {
     	
@@ -61,12 +61,7 @@ angular.module('PaperUI.controllers', ['PaperUI.constants']).controller('BodyCon
 						updateState = false;
     				}
     			}
-    			// ignore ON, OFF and percentage update for Dimmer
-    			if(item.type === 'ColorItem') {
-    				if(state.indexOf(',') < 0) {
-						updateState = false;
-    				}
-    			}
+    			
     			if(updateState) {
 	    			$scope.$apply(function (scope) {
 	    				item.state = state;
