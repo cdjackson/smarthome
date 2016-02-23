@@ -152,7 +152,7 @@ public abstract class BleBaseThingHandler extends BaseThingHandler {
         return stringValue;
     }
 
-    private String dumpServices() {
+    protected String dumpServices() {
         // Dump a list of services and characteristics
         StringBuilder strOutput = new StringBuilder();
         strOutput.append("Address      : " + device.getAddress() + "\n");
