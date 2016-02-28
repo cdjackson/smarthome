@@ -1,8 +1,3 @@
-function getThingTypeUID(thingUID) {
-	var segments = thingUID.split(':');
-	return segments[0] + ':' + segments[1];
-};
-    
 angular.module('PaperUI.controllers.configuration', 
 []).controller('ConfigurationPageController', function($scope, $location, thingTypeRepository) {
     $scope.navigateTo = function(path) {
@@ -14,7 +9,6 @@ angular.module('PaperUI.controllers.configuration',
             $scope.thingTypes[thingType.UID] = thingType;
         });
     });
-    $scope.getThingTypeUID = getThingTypeUID; 
 }).controller('BindingController', function($scope, $mdDialog, bindingRepository) {
 	$scope.setSubtitle(['Bindings']);
 	$scope.setHeaderText('Shows all installed bindings.');
@@ -72,7 +66,7 @@ angular.module('PaperUI.controllers.configuration',
         $scope.expertMode = false;
         configDescriptionService.getByUri({uri: configDescriptionURI}, function(configDescription) {
             if(configDescription) {
-                $scope.parameters = configService.getRenderingModel(configDescription.parameters);
+                $scope.parameters = configService.getRenderingModel(configDescription.parameters, configDescription.parameterGroups);
             }
         });
     }
@@ -182,7 +176,7 @@ angular.module('PaperUI.controllers.configuration',
 		$scope.expertMode = false;
 		configDescriptionService.getByUri({uri: configDescriptionURI}, function(configDescription) {
 			if(configDescription) {
-				$scope.parameters = configService.getRenderingModel(configDescription.parameters);
+				$scope.parameters = configService.getRenderingModel(configDescription.parameters, configDescription.parameterGroups);
 			}
 		});
 	}
@@ -302,10 +296,12 @@ angular.module('PaperUI.controllers.configuration',
 		thingRepository, thingSetupService, homeGroupRepository, linkService) {
 	
 	var thingUID = $scope.path[4];
-	var thingTypeUID = getThingTypeUID(thingUID);
+	$scope.thingTypeUID = null;
 	
 	$scope.thing;
 	$scope.thingType;
+	$scope.thingChannels=[];
+	$scope.showAdvanced=false;
 	$scope.edit = function(thing, event) {
 		$mdDialog.show({
 			controller : 'EditThingDialogController',
@@ -414,35 +410,89 @@ angular.module('PaperUI.controllers.configuration',
         }
     };
     
-    $scope.getChannels = function(advanced) {
+    var getChannels = function(advanced) {
+    	
         if (!$scope.thingType || !$scope.thing) {
             return;
-        }
-        return $.grep($scope.thing.channels, function(channel, i) {
-           var channelType = $scope.getChannelTypeById(channel.id);
-           return channelType ? advanced == channelType.advanced : false;
-        });
+        }   
+        var thingChannels=[];
+		var includedChannels = [];
+		$scope.isAdvanced = filterAdvance($scope.thing.channels, true).length > 0;
+		if ($scope.thingType.channelGroups && $scope.thingType.channelGroups.length > 0) {
+			for (var i = 0; i < $scope.thingType.channelGroups.length; i++) {
+				var group = {};
+				group.name = $scope.thingType.channelGroups[i].label;
+				group.description = $scope.thingType.channelGroups[i].description;
+				group.channels = matchGroup($scope.thing.channels, $scope.thingType.channelGroups[i].id);
+				group.channels = advanced ? group.channels : filterAdvance(group.channels, false);
+				includedChannels = includedChannels.concat(group.channels);
+				thingChannels.push(group);
+			}
+			var group = {
+				"name" : "Others",
+				"description" : "Other channels",
+				"channels" : []
+			};
+			for (var i = 0; i < $scope.thing.channels.length; i++) {
+				if (includedChannels.indexOf($scope.thing.channels[i]) == -1)
+					group.channels.push($scope.thing.channels[i]);
+			}
+			if (group.channels && group.channels.length > 0) {
+				thingChannels.push(group);
+			}
+		} else {
+			var group = {};
+			group.channels = advanced ? $scope.thing.channels : filterAdvance($scope.thing.channels, advanced);
+			thingChannels.push(group);
+		}	
+        
+        return thingChannels;
     };
-	
+	$scope.refreshChannels = function(showAdvanced){
+	    	$scope.thingChannels = getChannels(showAdvanced);
+    };
+    function filterAdvance(channels,advanced){
+	   	 return $.grep(channels, function(channel, i) {
+	            var channelType = $scope.getChannelTypeById(channel.id);
+	            return channelType ? advanced == channelType.advanced : false;
+	         });
+	}
+	function matchGroup(arr,id){
+	   	var matched=[];
+	   	for (var i=0 ; i < arr.length ; i++){
+	   		 if (arr[i].id){
+	   			var sub = arr[i].id.split("#");
+		   			if (sub[0] && sub[0] == id){
+	   				matched.push(arr[i]);
+	   			}
+	   		}
+	   	}
+	   	return matched;
+	}
     $scope.getThing = function(refresh) {
     	thingRepository.getOne(function(thing) {
     		return thing.UID === thingUID;
     	}, function(thing) {
     		$scope.thing = thing;
+    		 $scope.refreshChannels(false);
+    		$scope.thingTypeUID = thing.thingTypeUID;
     		if(thing.item) {
-    			$scope.setTitle(thing.item.label);
+    			$scope.setTitle(thing.label);
     		} else {
     			$scope.setTitle(thing.UID);
     		}
     	}, refresh);	
 	}
-	$scope.getThing(false);
+	$scope.getThing(true);
 	
 	thingTypeRepository.getOne(function(thingType) {
-		return thingType.UID === thingTypeUID;
+		return thingType.UID === $scope.thingTypeUID;
 	}, function(thingType) {
 		$scope.thingType = thingType;
+		$scope.thingTypeChannels = thingType.channels && thingType.channels.length > 0 ? thingType.channels
+				: thingType.channelGroups;
 		$scope.setHeaderText(thingType.description);
+        $scope.refreshChannels(false);
 	});
 }).controller('RemoveThingDialogController', function($scope, $mdDialog, toastService, 
         thingSetupService, homeGroupRepository, thing) {
@@ -476,12 +526,12 @@ angular.module('PaperUI.controllers.configuration',
         $mdDialog.hide(itemName);
     }
 }).controller('EditThingController', function($scope, $mdDialog, toastService, 
-		thingTypeRepository, thingRepository, thingSetupService, homeGroupRepository, configService) {
+		thingTypeRepository, thingRepository, thingSetupService, homeGroupRepository, configService, thingService) {
 	
 	$scope.setHeaderText('Click the \'Save\' button to apply the changes.');
 	
 	var thingUID = $scope.path[4];
-	var thingTypeUID = getThingTypeUID(thingUID);
+	$scope.thingTypeUID = null;
 	
 	$scope.thing;
 	$scope.groups = [];
@@ -505,8 +555,10 @@ angular.module('PaperUI.controllers.configuration',
 		} else {
 		    thing.item = {};
         }
-		thingSetupService.update(thing, function() {
-	        thingRepository.update(thing);
+		thingService.updateConfig({
+			thingUID : thing.UID
+		}, thing.configuration, function() {
+			thingRepository.update(thing);
 			toastService.showDefaultToast('Thing updated');
 			$scope.navigateTo('things/view/' + thing.UID);
 		});
@@ -521,7 +573,7 @@ angular.module('PaperUI.controllers.configuration',
                 var thing = things[i];
                 for (var j = 0; j < $scope.thingType.supportedBridgeTypeUIDs.length; j++) {
                     var supportedBridgeTypeUID = $scope.thingType.supportedBridgeTypeUIDs[j];
-                    if(getThingTypeUID(thing.UID) === supportedBridgeTypeUID) {
+                    if (thing.thingTypeUID === supportedBridgeTypeUID) {
                         $scope.bridges.push(thing);
                     }   
                 }
@@ -530,10 +582,10 @@ angular.module('PaperUI.controllers.configuration',
     };
     $scope.getThingType = function() {
         thingTypeRepository.getOne(function(thingType) {
-            return thingType.UID === thingTypeUID;
+            return thingType.UID === $scope.thingTypeUID;
         }, function(thingType) {
             $scope.thingType = thingType;
-            $scope.parameters = configService.getRenderingModel(thingType.configParameters);
+            $scope.parameters = configService.getRenderingModel(thingType.configParameters, thingType.parameterGroups);
             $scope.needsBridge = $scope.thingType.supportedBridgeTypeUIDs && $scope.thingType.supportedBridgeTypeUIDs.length > 0;
             if($scope.needsBridge) {
                 $scope.getBridges();
@@ -545,6 +597,7 @@ angular.module('PaperUI.controllers.configuration',
     		return thing.UID === thingUID;
     	}, function(thing) {
     		$scope.thing = thing;
+    		$scope.thingTypeUID = thing.thingTypeUID;
     		$scope.getThingType();
     	    if(thing.item) {
 	    		homeGroupRepository.getAll(function(homeGroups) {
@@ -557,7 +610,7 @@ angular.module('PaperUI.controllers.configuration',
 	    	        });
 	    	        $scope.homeGroups = homeGroups;
 	    	    });
-	    		$scope.setTitle('Edit ' + thing.item.label);
+	    		$scope.setTitle('Edit ' + thing.label);
     	    } else {
     	    	$scope.setTitle('Edit ' + thing.UID);
     	    }

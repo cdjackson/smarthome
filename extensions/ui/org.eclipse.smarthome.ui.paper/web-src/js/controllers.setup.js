@@ -1,15 +1,8 @@
-function getThingTypeUID(thingUID) {
-    var segments = thingUID.split(':');
-    return segments[0] + ':' + segments[1];
-};
 
 angular.module('PaperUI.controllers.setup', 
 []).controller('SetupPageController', function($scope, $location, thingTypeRepository, bindingRepository) {
     $scope.navigateTo = function(path) {
-        $location.path('setup/' + path);
-    }
-    $scope.getThingTypeUID = function(thingUID) {
-        return getThingTypeUID(thingUID);
+        $location.path('inbox/' + path);
     }
     $scope.thingTypes = [];
     thingTypeRepository.getAll(function(thingTypes) {
@@ -34,7 +27,7 @@ angular.module('PaperUI.controllers.setup',
     };
 }).controller('InboxEntryController', function($scope, $mdDialog, $q, inboxService, discoveryResultRepository, 
         thingTypeRepository, thingSetupService, toastService, thingRepository) {
-    $scope.approve = function(thingUID, event) {
+    $scope.approve = function(thingUID, thingTypeUID, event) {
         $mdDialog.show({
             controller : 'ApproveInboxEntryDialogController',
             templateUrl : 'partials/dialog.approveinboxentry.html',
@@ -49,13 +42,12 @@ angular.module('PaperUI.controllers.setup',
                 thingRepository.setDirty(true);
 
                 toastService.showDefaultToast('Thing added.', 'Show Thing', 'configuration/things/view/' + thingUID);
-                var thingTypeUID = $scope.getThingTypeUID(thingUID);
                 var thingType = thingTypeRepository.find(function(thingType) {
                     return thingTypeUID === thingType.UID;
                 });
                 
                 if(thingType && thingType.bridge) {
-                    $scope.navigateTo('wizard/search/' + thingUID.split(':')[0]);
+                    $scope.navigateTo('setup/search/' + thingUID.split(':')[0]);
                 } else {
                 	discoveryResultRepository.getAll(true);
                 }
@@ -140,9 +132,9 @@ angular.module('PaperUI.controllers.setup',
 	$scope.homeGroups = [];
     $scope.groupNames = [];
     $scope.thingType = null;
-    var thingTypeUID = getThingTypeUID(discoveryResult.thingUID);
+    $scope.thingTypeUID = discoveryResult.thingTypeUID;
     thingTypeRepository.getOne(function(thingType) {
-        return thingType.UID === thingTypeUID;
+        return thingType.UID === $scope.thingTypeUID;
     }, function(thingType) {
         $scope.thingType = thingType;
     });
@@ -222,7 +214,7 @@ angular.module('PaperUI.controllers.setup',
 		thingSetupService.add({'enableChannels': !$scope.advancedMode}, thing, function() {
 		    homeGroupRepository.setDirty(true);
 			toastService.showDefaultToast('Thing added');
-			$scope.navigateTo('wizard/search/' + $scope.thingType.UID.split(':')[0]);
+			$scope.navigateTo('setup/search/' + $scope.thingType.UID.split(':')[0]);
 		});
 	};
 	
@@ -235,7 +227,7 @@ angular.module('PaperUI.controllers.setup',
                 var thing = things[i];
                 for (var j = 0; j < $scope.thingType.supportedBridgeTypeUIDs.length; j++) {
                     var supportedBridgeTypeUID = $scope.thingType.supportedBridgeTypeUIDs[j];
-                    if(getThingTypeUID(thing.UID) === supportedBridgeTypeUID) {
+                    if(thing.thingTypeUID === supportedBridgeTypeUID) {
                         $scope.bridges.push(thing);
                     }   
                 }
@@ -249,9 +241,10 @@ angular.module('PaperUI.controllers.setup',
     	$scope.setTitle('Configure ' + thingType.label);
     	$scope.setHeaderText(thingType.description);
 		$scope.thingType = thingType;
-        $scope.parameters = configService.getRenderingModel(thingType.configParameters);
+        $scope.parameters = configService.getRenderingModel(thingType.configParameters, thingType.parameterGroups);
 		$scope.thing.UID = thingType.UID + ':' + generateUUID();
 		$scope.thing.item.label = thingType.label;
+        $scope.thing.label = thingType.label;
 		$scope.needsBridge = $scope.thingType.supportedBridgeTypeUIDs && $scope.thingType.supportedBridgeTypeUIDs.length > 0;
 		if($scope.needsBridge) {
 		    $scope.getBridges();
@@ -275,7 +268,7 @@ angular.module('PaperUI.controllers.setup',
     $scope.setHeaderText('Choose a Binding for which you want to add new things.');
     bindingRepository.getAll();
     $scope.selectBinding = function(bindingId) {
-        $scope.navigateTo('wizard/search/' + bindingId);
+        $scope.navigateTo('setup/search/' + bindingId);
     }
 }).controller('SetupWizardSearchBindingController', function($scope, discoveryResultRepository, discoveryService, 
         thingTypeRepository, bindingRepository) {
@@ -330,7 +323,7 @@ angular.module('PaperUI.controllers.setup',
     $scope.setHeaderText('Choose a Thing from the ' + (binding ? binding.name : '') + ' which you want to add.');
     
     $scope.selectThingType = function(thingTypeUID) {
-        $scope.navigateTo('wizard/add/' + thingTypeUID);
+        $scope.navigateTo('setup/add/' + thingTypeUID);
     }
     $scope.filter = function(thingType) {
         return thingType.UID.split(':')[0] === $scope.bindingId;

@@ -71,23 +71,39 @@ angular.module('PaperUI.services', ['PaperUI.constants']).config(function($httpP
 	    	self.showToast('success', text, actionText, actionUrl);
 	    }
 	};
-}).factory('configService', function(itemService) {
+}).factory('configService', function(itemService, $filter) {
     return {
-        getRenderingModel: function(configParameters) {
+        getRenderingModel: function(configParameters, configGroups) {
             var parameters = [];
+            if(!configGroups)
+            	configGroups=[];
+            configGroups.push({"name":"_default","label":"Others"});
+            var indexArray=[];
+            for(var j=0;j<configGroups.length;j++){
+            	indexArray[configGroups[j].name]=j;
+            }
             if(!configParameters) {
                 return parameters;
             }
+            var groupsList=[];          
+            for(var j=0;j<configGroups.length;j++){
+            	groupsList[j]={};
+            	groupsList[j].parameters=[];
+            }            
             var itemsList;
             for (var i = 0; i < configParameters.length; i++) {
                 var parameter = configParameters[i];
-              
-                if(parameter.context==='item'){
+               
+                var group=[];
+                if(!parameter.groupName)
+                	parameter.groupName="_default";
+                group=$filter('filter')(configGroups,{name:parameter.groupName},true);
+                if(parameter.context && parameter.context.toUpperCase()==='ITEM'){
                 	parameter.element = 'select';
                 	itemsList = itemsList === undefined ? itemService.getAll() : itemsList;
                 	parameter.options = itemsList;
                 }
-                else if(parameter.type === 'TEXT') {
+                else if(parameter.type.toUpperCase() === 'TEXT' ) {
                     if(parameter.options && parameter.options.length > 0) {
                         parameter.element = 'select';
                         parameter.options = parameter.options;
@@ -95,17 +111,28 @@ angular.module('PaperUI.services', ['PaperUI.constants']).config(function($httpP
                         parameter.element = 'input';
                         parameter.inputType = parameter.context === 'password' ? 'password' : 'text';
                     }
-                } else if(parameter.type === 'BOOLEAN') {
+                } else if(parameter.type.toUpperCase() === 'BOOLEAN') {
                     parameter.element = 'switch';
-                } else if(parameter.type === 'INTEGER' || parameter.type === 'DECIMAL') {
-                    parameter.element = 'input';
-                    parameter.inputType = 'number';
+                } else if(parameter.type.toUpperCase() === 'INTEGER' || parameter.type.toUpperCase() === 'DECIMAL') {
+                	 if(parameter.options && parameter.options.length > 0) {
+                         parameter.element = 'select';
+                         parameter.options = parameter.options;
+                     } else	{
+                    	 parameter.element = 'input';
+                    	 parameter.inputType = 'number';
+                     }
                 } else {
                     parameter.element = 'input';
                     parameter.inputType = 'text';
-                }
-                parameters.push(parameter);
+                }                
+                groupsList[indexArray[group[0].name]].groupName=group[0].name;
+                groupsList[indexArray[group[0].name]].groupLabel=group[0].label;
+                groupsList[indexArray[group[0].name]].parameters.push(parameter);             
             }
+            for(var j=0;j<groupsList.length;j++){
+            	if(groupsList[j].groupName)
+            	parameters.push(groupsList[j]);
+            }     
             return parameters;
         },
         getConfigAsArray: function(config) {
