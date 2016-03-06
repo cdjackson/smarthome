@@ -7,6 +7,7 @@
  */
 package org.eclipse.smarthome.io.transport.bluetooth.bluez;
 
+import java.nio.file.Path;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -15,25 +16,15 @@ import java.util.Map.Entry;
 import java.util.Set;
 import java.util.Vector;
 
-import org.eclipse.smarthome.io.transport.bluetooth.BluetoothAdapter;
-import org.eclipse.smarthome.io.transport.bluetooth.BluetoothDevice;
-import org.eclipse.smarthome.io.transport.bluetooth.BluetoothProfile;
 import org.eclipse.smarthome.io.transport.bluetooth.bluez.internal.dbus.Adapter1;
+import org.eclipse.smarthome.io.transport.bluetooth.bluez.internal.dbus.Device1;
 import org.eclipse.smarthome.io.transport.bluetooth.bluez.internal.dbus.ObjectManager;
 import org.eclipse.smarthome.io.transport.bluetooth.bluez.internal.dbus.ObjectManager.InterfacesAdded;
 import org.eclipse.smarthome.io.transport.bluetooth.bluez.internal.dbus.ObjectManager.InterfacesRemoved;
+import org.eclipse.smarthome.io.transport.bluetooth.bluez.internal.dbus.Profile1;
+import org.eclipse.smarthome.io.transport.bluetooth.bluez.internal.dbus.ProfileManager1;
 import org.eclipse.smarthome.io.transport.bluetooth.bluez.internal.dbus.Properties.PropertiesChanged;
 import org.eclipse.smarthome.io.transport.bluetooth.bluez.le.BluezBluetoothLeScanner;
-import org.eclipse.smarthome.io.transport.bluetooth.events.BluetoothDeviceDiscoveredEvent;
-import org.eclipse.smarthome.io.transport.bluetooth.le.BluetoothLeScanner;
-import org.freedesktop.DBus;
-import org.freedesktop.dbus.DBusConnection;
-import org.freedesktop.dbus.DBusSigHandler;
-import org.freedesktop.dbus.DBusSignal;
-import org.freedesktop.dbus.Path;
-import org.freedesktop.dbus.Variant;
-import org.freedesktop.dbus.exceptions.DBusException;
-import org.freedesktop.dbus.exceptions.DBusExecutionException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -48,6 +39,7 @@ public class BluezBluetoothAdapter extends BluetoothAdapter implements DBusSigHa
     private static final Logger logger = LoggerFactory.getLogger(BluezBluetoothAdapter.class);
 
     private Adapter1 adapter1;
+    private ProfileManager1 profileManager1;
     private DBusConnection connection;
     private DBus.Properties propertyReader;
     private String adapter;
@@ -112,6 +104,20 @@ public class BluezBluetoothAdapter extends BluetoothAdapter implements DBusSigHa
             scanProperties.put(BluezBluetoothConstants.BLUEZ_DBUS_DEVICE_PROPERTY_RSSI,
                     new Variant(new Short((short) -125)));
             adapter1.SetDiscoveryFilter(scanProperties);
+
+            profileManager1 = connection.getRemoteObject(BluezBluetoothConstants.BLUEZ_DBUS_SERVICE, dbusPath,
+                    ProfileManager1.class);
+
+            Profile1 profile1 = new BluezProfile1();
+            connection.exportObject(dbusPath, profile1);
+
+            try {
+                profileManager1.RegisterProfile(profile1, "", properties);
+            } catch (Exception x) {
+                logger.warn("Error registering profile: {}", x.getMessage());
+                logger.warn("Error registering profile: {}", x.getStackTrace());
+            }
+
         } catch (DBusException e) {
             e.printStackTrace();
         } catch (DBusExecutionException e) {
@@ -411,6 +417,34 @@ public class BluezBluetoothAdapter extends BluetoothAdapter implements DBusSigHa
 
     public String getDbusPath() {
         return dbusPath;
+    }
+
+    private class BluezProfile1 implements Profile1 {
+
+        @Override
+        public boolean isRemote() {
+            // TODO Auto-generated method stub
+            return false;
+        }
+
+        @Override
+        public void NewConnection(Device1 device, int fd, Map<String, Variant> properties) {
+            // TODO Auto-generated method stub
+
+        }
+
+        @Override
+        public void RequestDisconnection(Device1 device) {
+            // TODO Auto-generated method stub
+
+        }
+
+        @Override
+        public void Release() {
+            // TODO Auto-generated method stub
+
+        }
+
     }
 
 }
