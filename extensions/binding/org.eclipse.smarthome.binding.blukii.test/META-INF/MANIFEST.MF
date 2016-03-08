@@ -1,0 +1,29 @@
+Manifest-Version: 1.0
+Bundle-ManifestVersion: 2
+Bundle-Name:  Blukii Binding Tests
+Bundle-SymbolicName: org.eclipse.smarthome.binding.blukii.test;singleton:=true
+Bundle-Vendor: Eclipse.org/SmartHome
+Bundle-Version: 0.8.0.qualifier
+Bundle-RequiredExecutionEnvironment: JavaSE-1.7
+Fragment-Host: org.eclipse.smarthome.binding.blukii
+Import-Package: org.eclipse.smarthome.binding.blukii,
+ org.eclipse.smarthome.binding.blukii.internal,
+ org.slf4j,
+ groovy.json,
+ groovy.lang,
+ org.codehaus.groovy.reflection,
+ org.codehaus.groovy.runtime,
+ org.codehaus.groovy.runtime.callsite,
+ org.codehaus.groovy.runtime.typehandling,
+ org.eclipse.smarthome.core.events,
+ org.eclipse.smarthome.core.thing.setup,
+ org.eclipse.smarthome.core.thing.util,
+ org.eclipse.smarthome.test,
+ org.eclipse.smarthome.test.storage,
+ org.hamcrest;core=split,
+ org.junit;version="4.0.0",
+ org.osgi.service.device,
+ org.osgi.framework
+Export-Package: org.eclipse.smarthome.binding.blukii.internal;x-internal:=true,
+ org.eclipse.smarthome.binding.blukii;uses:="org.eclipse.smarthome.test"
+
