@@ -57,8 +57,6 @@ public class BluetoothHandler extends BaseThingHandler {
 
     @Override
     public void initialize() {
-        updateStatus(ThingStatus.UNINITIALIZED);
-
         address = this.getThing().getProperties().get(BluetoothBindingConstants.PROPERTY_ADDRESS);
         if (address == null) {
             logger.error("Property 'Address' is not set for {}", getThing().getUID());

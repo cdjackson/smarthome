@@ -270,6 +270,18 @@ public class BluezBluetoothAdapter extends BluetoothAdapter implements DBusSigHa
         return new BluezBluetoothLeScanner(this);
     }
 
+    BluezBluetoothA2dp proxy;
+
+    @Override
+    public boolean getProfileProxy(BluetoothProfile.ServiceListener listener, int profile) {
+        switch (profile) {
+            case BluetoothProfile.A2DP:
+                proxy = new BluezBluetoothA2dp(this);
+                return true;
+        }
+        return false;
+    }
+
     /**
      *
      * @param properties
