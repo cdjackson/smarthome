@@ -11,6 +11,7 @@ import java.util.Map;
 
 import org.freedesktop.dbus.DBusInterface;
 import org.freedesktop.dbus.DBusInterfaceName;
+import org.freedesktop.dbus.UnixFD;
 import org.freedesktop.dbus.Variant;
 
 @DBusInterfaceName("org.bluez.Profile1")
@@ -20,8 +21,7 @@ public interface Profile1 extends DBusInterface {
 
     public void Cancel();
 
-    public void NewConnection(DBusInterface path, int fd, Map<String, Variant> properties);
+    public void NewConnection(DBusInterface path, UnixFD fd, Map<String, Variant> properties);
 
     public void RequestDisconnection(DBusInterface path);
-
 }

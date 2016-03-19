@@ -27,6 +27,7 @@ import org.freedesktop.dbus.DBusConnection;
 import org.freedesktop.dbus.DBusInterface;
 import org.freedesktop.dbus.DBusSigHandler;
 import org.freedesktop.dbus.DBusSignal;
+import org.freedesktop.dbus.UnixFD;
 import org.freedesktop.dbus.Variant;
 import org.freedesktop.dbus.exceptions.DBusException;
 import org.freedesktop.dbus.exceptions.DBusExecutionException;
@@ -216,7 +217,7 @@ public class BluezBluetoothA2dp extends BluetoothA2dp implements DBusSigHandler 
         }
 
         @Override
-        public void NewConnection(DBusInterface path, int fd, Map<String, Variant> properties) {
+        public void NewConnection(DBusInterface path, UnixFD fd, Map<String, Variant> properties) {
             // TODO Auto-generated method stub
             logger.debug("BlueZ A2dpProfile NewConnection {} {} {}", path, fd, properties);
         }
