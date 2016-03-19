@@ -4,7 +4,6 @@
 	<classpathentry kind="con" path="org.eclipse.pde.core.requiredPlugins"/>
 	<classpathentry kind="src" path="src/main/java"/>
 	<classpathentry combineaccessrules="false" kind="src" path="/org.eclipse.smarthome.io.transport.dbus"/>
-	<classpathentry kind="lib" path="/org.eclipse.smarthome.io.transport.dbus/lib/libdbus-java-2.7.jar"/>
 	<classpathentry kind="lib" path="/org.eclipse.smarthome.io.transport.dbus/lib/unix-0.5.jar"/>
 	<classpathentry kind="output" path="target/classes"/>
 </classpath>
