@@ -7,6 +7,8 @@
    Academic Free Licence Version 2.1.
 
    Full licence texts are included in the COPYING file with this program.
+
+   @author Chris Jackson: Added UNIX_FD negotiation
 */
 package org.freedesktop.dbus;
 
@@ -326,9 +328,9 @@ public class Transport {
                         sb.append((char) c);
                 }
             }
-            // if (Debug.debug) {
-            Debug.print(Debug.VERBOSE, "received: " + sb);
-            // }
+            if (Debug.debug) {
+                Debug.print(Debug.VERBOSE, "received: " + sb);
+            }
             try {
                 return new Command(sb.toString());
             } catch (Exception e) {
@@ -378,9 +380,9 @@ public class Transport {
             }
             sb.append('\r');
             sb.append('\n');
-            // if (Debug.debug) {
-            Debug.print(Debug.VERBOSE, "sending: " + sb);
-            // }
+            if (Debug.debug) {
+                Debug.print(Debug.VERBOSE, "sending: " + sb);
+            }
             out.write(sb.toString().getBytes());
         }
 

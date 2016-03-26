@@ -18,11 +18,11 @@ public interface MediaEndpoint1 extends DBusInterface {
 
     /**
      * Sets the configuration for the transport.
-     * 
+     *
      * @param transport
      * @param properties
      */
-    public void SetConfiguration(MediaTransport1 transport, Map<String, Variant> properties);
+    public void SetConfiguration(DBusInterface path, Map<String, Variant> properties);
 
     /**
      * Select the preferable configuration from the supported capabilities.
@@ -31,14 +31,14 @@ public interface MediaEndpoint1 extends DBusInterface {
      * @param capabilities
      * @return Returns a configuration which can be used to setup a transport.
      */
-    public Map<String, Variant> SelectConfiguration(MediaTransport1 transport, Map<String, Variant> capabilities);
+    public Map<String, Variant> SelectConfiguration(Map<String, Variant> capabilities);
 
     /**
      * Clears the transport configuration.
      *
      * @param transport
      */
-    public void ClearConfiguration(MediaTransport1 transport);
+    public void ClearConfiguration(DBusInterface path);
 
     /**
      * This method gets called when the service daemon unregisters the endpoint. An endpoint can use it to do cleanup

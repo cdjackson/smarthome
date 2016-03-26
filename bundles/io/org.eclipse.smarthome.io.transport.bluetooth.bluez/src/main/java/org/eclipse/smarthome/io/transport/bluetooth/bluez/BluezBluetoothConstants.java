@@ -64,6 +64,13 @@ public class BluezBluetoothConstants {
     public final static String BLUEZ_DBUS_GATTDESCRIPTOR_PROPERTY_UUID = "UUID";
     public final static String BLUEZ_DBUS_GATTDESCRIPTOR_PROPERTY_VALUE = "Value";
 
+    public final static String BLUEZ_DBUS_A2DP_PROPERTY_DEVICE = "Device";
+    public final static String BLUEZ_DBUS_A2DP_PROPERTY_CODEC = "Codec";
+    public final static String BLUEZ_DBUS_A2DP_PROPERTY_CONFIGURATION = "Configuration";
+    public final static String BLUEZ_DBUS_A2DP_PROPERTY_STATE = "State";
+    public final static String BLUEZ_DBUS_A2DP_PROPERTY_VOLUME = "Volume";
+    public final static String BLUEZ_DBUS_A2DP_PROPERTY_UUID = "UUID";
+
     public final static Object BLUEZ_DBUS_SIGNAL_PROPERTIESCHANGED = "PropertiesChanged";
     public final static Object BLUEZ_DBUS_SIGNAL_INTERFACESADDED = "InterfacesAdded";
 

@@ -1133,13 +1133,14 @@ public class Message {
             default:
                 throw new UnknownTypeCodeException(sigb[ofs[0]]);
         }
-        // if (Debug.debug) {
-        if (rv instanceof Object[]) {
-            Debug.print(Debug.VERBOSE, "Extracted: " + Arrays.deepToString((Object[]) rv) + " (now at " + ofs[1] + ")");
-        } else {
-            Debug.print(Debug.VERBOSE, "Extracted: " + rv + " (now at " + ofs[1] + ")");
+        if (Debug.debug) {
+            if (rv instanceof Object[]) {
+                Debug.print(Debug.VERBOSE,
+                        "Extracted: " + Arrays.deepToString((Object[]) rv) + " (now at " + ofs[1] + ")");
+            } else {
+                Debug.print(Debug.VERBOSE, "Extracted: " + rv + " (now at " + ofs[1] + ")");
+            }
         }
-        // }
         return rv;
     }
 

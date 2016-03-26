@@ -61,6 +61,7 @@ public class Debug {
     }
 
     public static void print(int loglevel, String s) {
+        System.out.println(s);
     }
 
     // private static String[] getTraceElements() {
@@ -68,6 +69,7 @@ public class Debug {
     // }
 
     public static void print(int loglevel, Object o) {
+        System.out.println(o);
     }
 
     public static void printMap(Map m) {

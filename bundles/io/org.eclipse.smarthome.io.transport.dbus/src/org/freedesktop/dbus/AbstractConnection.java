@@ -936,9 +936,10 @@ public abstract class AbstractConnection {
                     }
                     Object result;
                     try {
-                        // if (Debug.debug)
+                        // if (Debug.debug) {
                         Debug.print(Debug.VERBOSE, "Invoking Method: " + me + " on " + ob + " with parameters "
                                 + Arrays.deepToString(m.getParameters()));
+                        // }
                         result = me.invoke(ob, m.getParameters());
                     } catch (InvocationTargetException ITe) {
                         if (EXCEPTION_DEBUG && Debug.debug) {

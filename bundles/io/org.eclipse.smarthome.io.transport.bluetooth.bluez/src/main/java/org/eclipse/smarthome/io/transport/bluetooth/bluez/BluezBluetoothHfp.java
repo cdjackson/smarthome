@@ -12,20 +12,20 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import org.eclipse.smarthome.io.transport.bluetooth.BluetoothA2dp;
 import org.eclipse.smarthome.io.transport.bluetooth.BluetoothDevice;
+import org.eclipse.smarthome.io.transport.bluetooth.BluetoothHfp;
 import org.eclipse.smarthome.io.transport.bluetooth.BluetoothProfile;
 import org.eclipse.smarthome.io.transport.bluetooth.bluez.internal.dbus.Media1;
 import org.eclipse.smarthome.io.transport.bluetooth.bluez.internal.dbus.MediaControl1;
 import org.eclipse.smarthome.io.transport.bluetooth.bluez.internal.dbus.MediaEndpoint1;
 import org.eclipse.smarthome.io.transport.bluetooth.bluez.internal.dbus.MediaPlayer1;
-import org.eclipse.smarthome.io.transport.bluetooth.bluez.internal.dbus.MediaTransport1;
-import org.eclipse.smarthome.io.transport.bluetooth.bluez.internal.dbus.Properties.PropertiesChanged;
+import org.eclipse.smarthome.io.transport.bluetooth.bluez.internal.dbus.Profile1;
 import org.freedesktop.DBus;
 import org.freedesktop.dbus.DBusConnection;
 import org.freedesktop.dbus.DBusInterface;
 import org.freedesktop.dbus.DBusSigHandler;
 import org.freedesktop.dbus.DBusSignal;
+import org.freedesktop.dbus.UnixFD;
 import org.freedesktop.dbus.Variant;
 import org.freedesktop.dbus.exceptions.DBusException;
 import org.freedesktop.dbus.exceptions.DBusExecutionException;
@@ -37,8 +37,31 @@ import org.slf4j.LoggerFactory;
  *
  * @author Chris Jackson - Initial Contribution
  */
-public class BluezBluetoothA2dp extends BluetoothA2dp {
-    private static final Logger logger = LoggerFactory.getLogger(BluezBluetoothA2dp.class);
+public class BluezBluetoothHfp extends BluetoothHfp implements DBusSigHandler {
+    private static final Logger logger = LoggerFactory.getLogger(BluezBluetoothHfp.class);
+
+    private final int HF_NREC = 0x0001;
+    private final int HF_3WAY = 0x0002;
+    private final int HF_CLI = 0x0004;
+    private final int HF_VOICE_RECOGNITION = 0x0008;
+    private final int HF_REMOTE_VOL = 0x0010;
+    private final int HF_ENHANCED_STATUS = 0x0020;
+    private final int HF_ENHANCED_CONTROL = 0x0040;
+    private final int HF_CODEC_NEGOTIATION = 0x0080;
+
+    private final int AG_3WAY = 0x0001;
+    private final int AG_NREC = 0x0002;
+    private final int AG_VOICE_RECOGNITION = 0x0004;
+    private final int AG_INBAND_RING = 0x0008;
+    private final int AG_VOICE_TAG = 0x0010;
+    private final int AG_REJECT_CALL = 0x0020;
+    private final int AG_ENHANCED_STATUS = 0x0040;
+    private final int AG_ENHANCED_CONTROL = 0x0080;
+    private final int AG_EXTENDED_RESULT = 0x0100;
+    private final int AG_CODEC_NEGOTIATION = 0x0200;
+
+    private final int HF_FEATURES = (HF_3WAY | HF_CLI | HF_VOICE_RECOGNITION | HF_REMOTE_VOL | HF_ENHANCED_STATUS
+            | HF_ENHANCED_CONTROL | HF_CODEC_NEGOTIATION);
 
     private DBusConnection connection;
     private Media1 media1;
@@ -47,9 +70,9 @@ public class BluezBluetoothA2dp extends BluetoothA2dp {
     private String dbusPath;
     DBus.Properties propertyReader;
 
-    private MediaEndpoint1 endpoint1;
+    private A2dpProfile profile1;
 
-    BluezBluetoothA2dp(BluezBluetoothAdapter adapter) {
+    BluezBluetoothHfp(BluezBluetoothAdapter adapter) {
         dbusPath = adapter.getDbusPath();
         logger.debug("Creating BlueZ A2DP at '{}'", dbusPath);
 
@@ -69,13 +92,14 @@ public class BluezBluetoothA2dp extends BluetoothA2dp {
 
             String[] deviceAddress = dbusPath.split("/");
             String rootAddress = "/" + deviceAddress[1] + "/" + deviceAddress[2] + "/" + deviceAddress[3];
+            // connection.requestBusName("org.eclipse.smarthome.binding.bluetooth"); // TODO: Change this!!!
             media1 = connection.getRemoteObject(BluezBluetoothConstants.BLUEZ_DBUS_SERVICE, rootAddress, Media1.class);
             if (media1 == null) {
                 logger.error("BlueZ error creating Media1 at {}", dbusPath);
                 return;
             }
 
-            endpoint1 = new A2dpEndpoint();
+            MediaEndpoint1 endpoint1 = new A2dpEndpoint();
             connection.exportObject(dbusPath, endpoint1);
 
             try {
@@ -85,7 +109,21 @@ public class BluezBluetoothA2dp extends BluetoothA2dp {
                 logger.warn("Error registering endpoint: {}", x.getStackTrace());
             }
 
-            // connection.addSigHandler(MediaItem1.class, this);
+            // ProfileManager1 profileManager1 = connection.getRemoteObject(BluezBluetoothConstants.BLUEZ_DBUS_SERVICE,
+            // BluezBluetoothConstants.BLUEZ_DBUS_PATH, ProfileManager1.class);
+
+            // Map<String, Variant> options = new HashMap<String, Variant>();
+            // options.put("Version", new Variant(new Integer(0x0106)));
+            // options.put("Features", new Variant(new Integer(HF_FEATURES)));
+            // options.put("Name", new Variant("SmartHome"));
+            // options.put("AutoConnect", new Variant(true));
+            // options.put("Channel", new Variant(6));
+            // options.put("Capabilities", new Variant(BluezBluetoothConstants.SBC_CAPABILITIES));
+
+            // profile1 = new A2dpProfile();
+            // connection.exportObject(dbusPath, profile1);
+
+            // profileManager1.RegisterProfile(profile1, BluetoothProfile.PROFILE_HFP.toString(), options);
 
             // mediaplayer1 = connection.getRemoteObject(BluezBluetoothConstants.BLUEZ_DBUS_SERVICE, dbusPath,
             // MediaPlayer1.class);
@@ -149,10 +187,48 @@ public class BluezBluetoothA2dp extends BluetoothA2dp {
         return false;
     }
 
-    class A2dpEndpoint implements MediaEndpoint1, DBusSigHandler {
-        private String dbusPath = null;
-        private MediaTransport1 mediaTransport1;
+    @Override
+    public void handle(DBusSignal arg0) {
+        // TODO Auto-generated method stub
 
+    }
+
+    class A2dpProfile implements Profile1 {
+
+        @Override
+        public boolean isRemote() {
+            // TODO Auto-generated method stub
+            logger.debug("BlueZ A2dpProfile isRemote");
+            return false;
+        }
+
+        @Override
+        public void Release() {
+            // TODO Auto-generated method stub
+            logger.debug("BlueZ A2dpProfile Release");
+        }
+
+        @Override
+        public void Cancel() {
+            // TODO Auto-generated method stub
+            logger.debug("BlueZ A2dpProfile Cancel");
+        }
+
+        @Override
+        public void NewConnection(DBusInterface path, UnixFD fd, Map<String, Variant> properties) {
+            // TODO Auto-generated method stub
+            logger.debug("BlueZ A2dpProfile NewConnection {} {} {}", path, fd, properties);
+        }
+
+        @Override
+        public void RequestDisconnection(DBusInterface path) {
+            // TODO Auto-generated method stub
+            logger.debug("BlueZ A2dpProfile RequestDisconnection {}", path);
+        }
+
+    }
+
+    class A2dpEndpoint implements MediaEndpoint1 {
         @Override
         public boolean isRemote() {
             return false;
@@ -161,10 +237,6 @@ public class BluezBluetoothA2dp extends BluetoothA2dp {
         @Override
         public void SetConfiguration(DBusInterface path, Map<String, Variant> properties) {
             logger.debug("BlueZ A2DP SetConfiguration {} {}", path, properties);
-            // dbusPath = path.toString().split(":")[2];
-
-            // dbusPath = (String) properties.get(BluezBluetoothConstants.BLUEZ_DBUS_A2DP_PROPERTY_DEVICE).getValue();
-            dbusPath = properties.get(BluezBluetoothConstants.BLUEZ_DBUS_A2DP_PROPERTY_DEVICE).getValue().toString();
 
             SbcConfiguration config = new SbcConfiguration(
                     (byte[]) properties.get(BluezBluetoothConstants.BLUEZ_DBUS_A2DP_PROPERTY_CONFIGURATION).getValue());
@@ -180,30 +252,6 @@ public class BluezBluetoothA2dp extends BluetoothA2dp {
             logger.debug("Bitpool              {} <> {}", config.getBitpoolMin(), config.getBitpoolMax());
             logger.debug("State                {}",
                     properties.get(BluezBluetoothConstants.BLUEZ_DBUS_A2DP_PROPERTY_STATE).getValue());
-
-            try {
-                connection.addSigHandler(PropertiesChanged.class, this);
-            } catch (DBusException e) {
-                // TODO Auto-generated catch block
-                e.printStackTrace();
-            }
-
-            // try {
-            logger.debug("Acquiring media transport {}", dbusPath);
-            // mediaTransport1 = connection.getRemoteObject(BluezBluetoothConstants.BLUEZ_DBUS_SERVICE, dbusPath,
-            // MediaTransport1.class);
-            // mediaTransport1.Release();
-            // Triplet<UnixFD, UInt16, UInt16> response = mediaTransport1.Acquire();
-            // logger.debug("Acquired media transport {}: {} {} {}", dbusPath, response.a, response.b, response.c);
-            // } catch (DBusException e) {
-            // TODO Auto-generated catch block
-            // e.printStackTrace();
-            // }
-            if (mediaTransport1 == null) {
-                logger.error("BlueZ error creating MediaTransport1 at {}", dbusPath);
-                return;
-            }
-
         }
 
         @Override
@@ -220,17 +268,6 @@ public class BluezBluetoothA2dp extends BluetoothA2dp {
         @Override
         public void Release() {
             logger.debug("BlueZ A2DP Release");
-        }
-
-        @Override
-        public void handle(DBusSignal signal) {
-            logger.debug("A2DP Signal: {}", signal);
-            if (signal.getName().equals(BluezBluetoothConstants.BLUEZ_DBUS_SIGNAL_PROPERTIESCHANGED)) {
-                // Make sure it's for us
-                if (dbusPath.equals(signal.getPath()) == false) {
-                    return;
-                }
-            }
         }
     }
 

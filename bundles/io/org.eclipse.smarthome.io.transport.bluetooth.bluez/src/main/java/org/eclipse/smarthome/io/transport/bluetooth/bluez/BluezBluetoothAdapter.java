@@ -346,6 +346,8 @@ public class BluezBluetoothAdapter extends BluetoothAdapter implements DBusSigHa
                     logger.debug("{}: Properties invalid: {}", dbusPath, propertiesChanged.invalidated_properties);
                 }
             } else if (signal.getName().equals(BluezBluetoothConstants.BLUEZ_DBUS_SIGNAL_INTERFACESADDED)) {
+                logger.debug("Interface added {} {}", signal.getPath(),
+                        ((InterfacesAdded) signal).interfaces_and_properties);
                 // Get the properties for this device
                 // If this is not a BlueZ device, then this will return null
                 Map<String, Variant> properties = ((InterfacesAdded) signal).interfaces_and_properties
@@ -356,6 +358,7 @@ public class BluezBluetoothAdapter extends BluetoothAdapter implements DBusSigHa
 
                 addInterface(properties);
             } else if (signal instanceof InterfacesRemoved) {
+                logger.debug("Interface removed {} {}", signal.getPath(), ((InterfacesRemoved) signal).interfaces);
                 removeDevice((InterfacesRemoved) signal);
             } else {
                 logger.info("Unknown signal!!! {}", signal.getClass());

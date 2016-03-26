@@ -7,9 +7,11 @@
  */
 package org.eclipse.smarthome.io.transport.bluetooth.bluez.internal.dbus;
 
+import org.freedesktop.DBus.Binding.Triplet;
 import org.freedesktop.dbus.DBusInterface;
 import org.freedesktop.dbus.DBusInterfaceName;
-import org.freedesktop.dbus.UInt32;
+import org.freedesktop.dbus.UInt16;
+import org.freedesktop.dbus.UnixFD;
 
 @DBusInterfaceName("org.bluez.MediaTransport1")
 public interface MediaTransport1 extends DBusInterface {
@@ -19,7 +21,7 @@ public interface MediaTransport1 extends DBusInterface {
      *
      * @return
      */
-    public UInt32 Acquire();
+    public Triplet<UnixFD, UInt16, UInt16> Acquire();
 
     /**
      * Acquire transport file descriptor only if the transport is in "pending" state at the time the message is received
@@ -28,7 +30,7 @@ public interface MediaTransport1 extends DBusInterface {
      *
      * @return
      */
-    public UInt32 TryAcquire();
+    public Triplet<UnixFD, UInt16, UInt16> TryAcquire();
 
     public void Release();
 
