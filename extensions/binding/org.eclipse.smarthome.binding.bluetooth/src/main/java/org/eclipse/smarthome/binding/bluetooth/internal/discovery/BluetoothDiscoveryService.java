@@ -65,7 +65,7 @@ public class BluetoothDiscoveryService extends AbstractDiscoveryService implemen
             // return;
         }
 
-        logger.debug("Start Bluetooth adapter LE scan");
+        logger.debug("Start Bluetooth adapter scan for audio devices");
         if (adapter == null) {
             adapter = BluetoothManager.getDefaultAdapter();
         }
@@ -139,7 +139,7 @@ public class BluetoothDiscoveryService extends AbstractDiscoveryService implemen
             logger.debug("{}: Device UUID: {}", device.getAddress(), uuid);
         }
 
-        if (deviceUuids.contains(BluetoothProfile.PROFILE_A2DP_SINK) == false) {
+        if (deviceUuids.contains(BluetoothProfile.PROFILE_A2DP_SOURCE) == false) {
             logger.debug("Device not supported");
             return;
         }

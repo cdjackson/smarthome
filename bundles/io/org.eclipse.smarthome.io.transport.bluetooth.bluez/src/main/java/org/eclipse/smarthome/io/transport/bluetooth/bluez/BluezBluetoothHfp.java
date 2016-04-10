@@ -255,7 +255,7 @@ public class BluezBluetoothHfp extends BluetoothHfp implements DBusSigHandler {
         }
 
         @Override
-        public Map<String, Variant> SelectConfiguration(Map<String, Variant> capabilities) {
+        public Map<String, Variant> SelectConfiguration(byte[] capabilities) {
             logger.debug("BlueZ A2DP SelectConfiguration {}", capabilities);
             return null;
         }

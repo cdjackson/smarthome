@@ -22,10 +22,13 @@ import org.eclipse.smarthome.io.transport.bluetooth.bluez.internal.dbus.MediaPla
 import org.eclipse.smarthome.io.transport.bluetooth.bluez.internal.dbus.MediaTransport1;
 import org.eclipse.smarthome.io.transport.bluetooth.bluez.internal.dbus.Properties.PropertiesChanged;
 import org.freedesktop.DBus;
+import org.freedesktop.DBus.Binding.Triplet;
 import org.freedesktop.dbus.DBusConnection;
 import org.freedesktop.dbus.DBusInterface;
 import org.freedesktop.dbus.DBusSigHandler;
 import org.freedesktop.dbus.DBusSignal;
+import org.freedesktop.dbus.UInt16;
+import org.freedesktop.dbus.UnixFD;
 import org.freedesktop.dbus.Variant;
 import org.freedesktop.dbus.exceptions.DBusException;
 import org.freedesktop.dbus.exceptions.DBusExecutionException;
@@ -56,7 +59,7 @@ public class BluezBluetoothA2dp extends BluetoothA2dp {
         try {
             String dbusAddress = System.getProperty(BluezBluetoothConstants.BLUEZ_DBUS_CONFIGURATION);
             if (dbusAddress == null) {
-                connection = DBusConnection.getConnection(DBusConnection.SYSTEM);
+                connection = DBusConnection.getConnection(DBusConnection.SESSION);
             } else {
                 connection = DBusConnection.getConnection(dbusAddress);
             }
@@ -188,17 +191,17 @@ public class BluezBluetoothA2dp extends BluetoothA2dp {
                 e.printStackTrace();
             }
 
-            // try {
-            logger.debug("Acquiring media transport {}", dbusPath);
-            // mediaTransport1 = connection.getRemoteObject(BluezBluetoothConstants.BLUEZ_DBUS_SERVICE, dbusPath,
-            // MediaTransport1.class);
-            // mediaTransport1.Release();
-            // Triplet<UnixFD, UInt16, UInt16> response = mediaTransport1.Acquire();
-            // logger.debug("Acquired media transport {}: {} {} {}", dbusPath, response.a, response.b, response.c);
-            // } catch (DBusException e) {
-            // TODO Auto-generated catch block
-            // e.printStackTrace();
-            // }
+            try {
+                logger.debug("Acquiring media transport {}", dbusPath);
+                mediaTransport1 = connection.getRemoteObject(BluezBluetoothConstants.BLUEZ_DBUS_SERVICE, dbusPath,
+                        MediaTransport1.class);
+                // mediaTransport1.Release();
+                Triplet<UnixFD, UInt16, UInt16> response = mediaTransport1.Acquire();
+                logger.debug("Acquired media transport {}: {} {} {}", dbusPath, response.a, response.b, response.c);
+            } catch (DBusException e) {
+                // TODO Auto-generated catch block
+                e.printStackTrace();
+            }
             if (mediaTransport1 == null) {
                 logger.error("BlueZ error creating MediaTransport1 at {}", dbusPath);
                 return;
@@ -207,7 +210,7 @@ public class BluezBluetoothA2dp extends BluetoothA2dp {
         }
 
         @Override
-        public Map<String, Variant> SelectConfiguration(Map<String, Variant> capabilities) {
+        public Map<String, Variant> SelectConfiguration(byte[] capabilities) {
             logger.debug("BlueZ A2DP SelectConfiguration {}", capabilities);
             return null;
         }

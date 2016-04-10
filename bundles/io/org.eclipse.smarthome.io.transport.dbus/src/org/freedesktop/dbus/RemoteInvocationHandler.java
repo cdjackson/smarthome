@@ -192,7 +192,7 @@ class RemoteInvocationHandler implements InvocationHandler {
 
     @Override
     public Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
-        Debug.print(0, "INVOKE::: " + proxy + "  " + method + "  " + args);
+        // Debug.print(0, "INVOKE::: " + proxy + " " + method + " " + args);
         if (method.getName().equals("isRemote")) {
             return true;
         } else if (method.getName().equals("clone")) {

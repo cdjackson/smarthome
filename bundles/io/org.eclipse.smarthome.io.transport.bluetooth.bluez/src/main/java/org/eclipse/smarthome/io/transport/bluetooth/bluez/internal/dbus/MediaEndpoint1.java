@@ -31,7 +31,7 @@ public interface MediaEndpoint1 extends DBusInterface {
      * @param capabilities
      * @return Returns a configuration which can be used to setup a transport.
      */
-    public Map<String, Variant> SelectConfiguration(Map<String, Variant> capabilities);
+    public Map<String, Variant> SelectConfiguration(byte[] capabilities);
 
     /**
      * Clears the transport configuration.
