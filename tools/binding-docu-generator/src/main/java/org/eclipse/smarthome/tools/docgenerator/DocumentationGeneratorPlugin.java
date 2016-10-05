@@ -1,5 +1,7 @@
 package org.eclipse.smarthome.tools.docgenerator;
 
+import java.nio.file.Paths;
+
 import org.apache.log4j.BasicConfigurator;
 import org.apache.maven.plugin.AbstractMojo;
 import org.apache.maven.plugin.MojoExecutionException;
@@ -9,8 +11,6 @@ import org.apache.maven.plugins.annotations.Parameter;
 import org.eclipse.smarthome.tools.docgenerator.impl.DefaultEshConfigurationParser;
 import org.eclipse.smarthome.tools.docgenerator.impl.MustacheDocumentationGenerator;
 import org.eclipse.smarthome.tools.docgenerator.models.ConfigurationParseResult;
-
-import java.nio.file.Paths;
 
 /**
  * Goal which generates the documentation for a binding from a template and the ESH XMLs.
@@ -27,13 +27,13 @@ public class DocumentationGeneratorPlugin extends AbstractMojo {
     /**
      * Directory which contains the partials.
      */
-    @Parameter(defaultValue = "${basedir}/templates")
+    @Parameter(defaultValue = "${basedir}/doc/template/template")
     private String partialsDir;
 
     /**
      * Name of your readme template file.
      */
-    @Parameter(defaultValue = "${basedir}/README.md.mustache")
+    @Parameter(defaultValue = "${basedir}/doc-template/README.md.mustache")
     private String template;
 
     /**
@@ -57,7 +57,8 @@ public class DocumentationGeneratorPlugin extends AbstractMojo {
             DocumentationGenerator generator = new MustacheDocumentationGenerator(getLog());
 
             ConfigurationParseResult eshConfiguration = configurationParser.parseEshConfiguration(Paths.get(eshDir));
-            generator.generateDocumentation(eshConfiguration, Paths.get(outputFile), Paths.get(partialsDir), Paths.get(template));
+            generator.generateDocumentation(eshConfiguration, Paths.get(outputFile), Paths.get(partialsDir),
+                    Paths.get(template));
         } catch (Exception e) {
             throw new MojoExecutionException("Unable to generate documentation.", e);
         }

@@ -1,8 +1,8 @@
 package org.eclipse.smarthome.tools.docgenerator.models;
 
-import org.eclipse.smarthome.tools.docgenerator.data.OptionList;
-
 import java.math.BigDecimal;
+
+import org.eclipse.smarthome.tools.docgenerator.data.OptionList;
 
 public class State implements Model<org.eclipse.smarthome.tools.docgenerator.schemas.State> {
     /**
@@ -47,6 +47,9 @@ public class State implements Model<org.eclipse.smarthome.tools.docgenerator.sch
      * @return Whether the state is readonly.
      */
     public Boolean readOnly() {
+        if (delegate == null) {
+            return null;
+        }
         return delegate.isReadOnly();
     }
 
@@ -54,6 +57,9 @@ public class State implements Model<org.eclipse.smarthome.tools.docgenerator.sch
      * @return The minimal value of the state.
      */
     public BigDecimal min() {
+        if (delegate == null) {
+            return null;
+        }
         return delegate.getMin();
     }
 
@@ -61,6 +67,9 @@ public class State implements Model<org.eclipse.smarthome.tools.docgenerator.sch
      * @return The maximal value of the state.
      */
     public BigDecimal max() {
+        if (delegate == null) {
+            return null;
+        }
         return delegate.getMax();
     }
 
@@ -68,6 +77,9 @@ public class State implements Model<org.eclipse.smarthome.tools.docgenerator.sch
      * @return The step between the values of the state.
      */
     public BigDecimal step() {
+        if (delegate == null) {
+            return null;
+        }
         return delegate.getStep();
     }
 
@@ -75,6 +87,9 @@ public class State implements Model<org.eclipse.smarthome.tools.docgenerator.sch
      * @return The pattern for the state.
      */
     public String pattern() {
+        if (delegate == null) {
+            return "";
+        }
         return delegate.getPattern();
     }
 
@@ -83,7 +98,7 @@ public class State implements Model<org.eclipse.smarthome.tools.docgenerator.sch
      */
     public OptionList options() {
         OptionList optionList = new OptionList();
-        if (delegate.getOptions() != null) {
+        if (delegate != null && delegate.getOptions() != null) {
             for (org.eclipse.smarthome.tools.docgenerator.schemas.Option option : delegate.getOptions().getOption()) {
                 optionList.put(option);
             }

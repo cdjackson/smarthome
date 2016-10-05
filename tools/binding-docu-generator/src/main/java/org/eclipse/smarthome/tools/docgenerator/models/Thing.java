@@ -1,8 +1,10 @@
 package org.eclipse.smarthome.tools.docgenerator.models;
 
+import java.util.List;
+
 import org.eclipse.smarthome.tools.docgenerator.data.ChannelGroupRefList;
 import org.eclipse.smarthome.tools.docgenerator.data.ChannelRefList;
-import org.eclipse.smarthome.tools.docgenerator.schemas.ChannelGroup;
+import org.eclipse.smarthome.tools.docgenerator.schemas.Property;
 import org.eclipse.smarthome.tools.docgenerator.schemas.ThingType;
 
 /**
@@ -85,7 +87,8 @@ public class Thing implements Model<ThingType> {
     public ChannelRefList channels() {
         ChannelRefList channelRefs = new ChannelRefList();
         if (delegate.getChannels() != null) {
-            for (org.eclipse.smarthome.tools.docgenerator.schemas.Channel channel : delegate.getChannels().getChannel()) {
+            for (org.eclipse.smarthome.tools.docgenerator.schemas.Channel channel : delegate.getChannels()
+                    .getChannel()) {
                 channelRefs.put(channel);
             }
         }
@@ -98,9 +101,9 @@ public class Thing implements Model<ThingType> {
     public ChannelGroupRefList channelGroups() {
         ChannelGroupRefList channels = new ChannelGroupRefList();
         if (delegate.getChannelGroups() != null) {
-            for (ChannelGroup group : delegate.getChannelGroups().getChannelGroup()) {
-                channels.put(group);
-            }
+            // for (ChannelGroup group : delegate.getChannelGroups().getChannelGroup()) {
+            // channels.put(group);
+            // }
         }
         return channels;
     }
@@ -116,5 +119,20 @@ public class Thing implements Model<ThingType> {
         }
     }
 
+    public String getParameter(String parameter) {
+        org.eclipse.smarthome.tools.docgenerator.schemas.Properties properties = delegate.getProperties();
+        if (properties == null) {
+            return "XXX";
+        }
+
+        List<Property> propertyList = properties.getProperty();
+        for (Property property : propertyList) {
+            if (property.getName().equals(parameter)) {
+                return property.getValue();
+            }
+        }
+
+        return "YYY";
+    }
 
 }
