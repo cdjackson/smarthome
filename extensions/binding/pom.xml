@@ -1,10 +1,10 @@
-<?xml version="1.0" encoding="UTF-8"?>
+<?xml version="1.0" encoding="MACROMAN"?>
 <project xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns="http://maven.apache.org/POM/4.0.0" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
 
   <parent>
     <groupId>org.eclipse.smarthome.extension</groupId>
     <artifactId>pom</artifactId>
-    <version>0.9.0-SNAPSHOT</version>
+    <version>0.8.0-SNAPSHOT</version>
   </parent>
 
   <modelVersion>4.0.0</modelVersion>
@@ -16,17 +16,14 @@
   <packaging>pom</packaging>
 
   <modules>
-    <module>org.eclipse.smarthome.binding.digitalstrom</module>
+    <module>org.eclipse.smarthome.binding.ble</module>
     <module>org.eclipse.smarthome.binding.hue</module>
     <module>org.eclipse.smarthome.binding.hue.test</module>
     <module>org.eclipse.smarthome.binding.fsinternetradio</module>
-    <module>org.eclipse.smarthome.binding.fsinternetradio.test</module>
     <module>org.eclipse.smarthome.binding.lifx</module>
     <module>org.eclipse.smarthome.binding.ntp</module>
-    <module>org.eclipse.smarthome.binding.ntp.test</module>
     <module>org.eclipse.smarthome.binding.sonos</module>
     <module>org.eclipse.smarthome.binding.wemo</module>
-    <module>org.eclipse.smarthome.binding.wemo.test</module>
     <module>org.eclipse.smarthome.binding.yahooweather</module>
   </modules>
 
