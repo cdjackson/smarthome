@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2014-2016 by the respective copyright holders.
+ * Copyright (c) 2014-2017 by the respective copyright holders.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -14,11 +14,13 @@ import java.text.MessageFormat;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CopyOnWriteArrayList;
 
 import org.apache.commons.io.IOUtils;
+import org.apache.commons.lang.StringUtils;
 import org.eclipse.emf.common.util.URI;
 import org.eclipse.emf.ecore.EObject;
 import org.eclipse.emf.ecore.resource.Resource;
@@ -245,7 +247,7 @@ public class ModelRepositoryImpl implements ModelRepository {
         try {
             resource.load(inputStream, Collections.EMPTY_MAP);
             StringBuilder criticalErrors = new StringBuilder();
-            StringBuilder warnings = new StringBuilder();
+            List<String> warnings = new LinkedList<>();
 
             if (resource != null && !resource.getContents().isEmpty()) {
                 // Check for syntactical errors
@@ -258,14 +260,19 @@ public class ModelRepositoryImpl implements ModelRepository {
                 }
 
                 // Check for validation errors, but log them only
-                org.eclipse.emf.common.util.Diagnostic diagnostic = Diagnostician.INSTANCE
-                        .validate(resource.getContents().get(0));
-                for (org.eclipse.emf.common.util.Diagnostic d : diagnostic.getChildren()) {
-                    warnings.append(d.getMessage());
-                    warnings.append("\n");
-                }
-                if (warnings.length() > 0) {
-                    logger.warn("Validation error(s) in configuration model '{}':\n {}", name, warnings);
+                try {
+                    org.eclipse.emf.common.util.Diagnostic diagnostic = Diagnostician.INSTANCE
+                            .validate(resource.getContents().get(0));
+                    for (org.eclipse.emf.common.util.Diagnostic d : diagnostic.getChildren()) {
+                        warnings.add(d.getMessage());
+                    }
+                    if (warnings.size() > 0) {
+                        logger.info("Validation issues found in configuration model '{}', using it anyway:\n{}", name,
+                                StringUtils.join(warnings, "\n"));
+                    }
+                } catch (NullPointerException e) {
+                    // see https://github.com/eclipse/smarthome/issues/3335
+                    logger.debug("Validation of '{}' skipped due to internal errors.", name);
                 }
             }
         } finally {

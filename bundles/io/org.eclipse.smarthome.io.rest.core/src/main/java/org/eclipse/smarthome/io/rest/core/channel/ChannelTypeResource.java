@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2014-2016 by the respective copyright holders.
+ * Copyright (c) 2014-2017 by the respective copyright holders.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -8,10 +8,8 @@
 package org.eclipse.smarthome.io.rest.core.channel;
 
 import java.util.ArrayList;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
-import java.util.Set;
 
 import javax.annotation.security.RolesAllowed;
 import javax.ws.rs.GET;
@@ -35,7 +33,7 @@ import org.eclipse.smarthome.core.thing.type.ChannelType;
 import org.eclipse.smarthome.core.thing.type.ChannelTypeRegistry;
 import org.eclipse.smarthome.core.thing.type.ChannelTypeUID;
 import org.eclipse.smarthome.io.rest.LocaleUtil;
-import org.eclipse.smarthome.io.rest.SatisfiableRESTResource;
+import org.eclipse.smarthome.io.rest.RESTResource;
 
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
@@ -47,11 +45,12 @@ import io.swagger.annotations.ApiResponses;
  * Provides access to ChannelType via REST.
  *
  * @author Chris Jackson - Initial contribution
+ * @author Franck Dechavanne - Added DTOs to ApiResponses
  */
 @Path(ChannelTypeResource.PATH_CHANNEL_TYPES)
 @RolesAllowed({ Role.ADMIN })
 @Api(value = ChannelTypeResource.PATH_CHANNEL_TYPES)
-public class ChannelTypeResource implements SatisfiableRESTResource {
+public class ChannelTypeResource implements RESTResource {
 
     /** The URI path to this resource */
     public static final String PATH_CHANNEL_TYPES = "channel-types";
@@ -78,11 +77,11 @@ public class ChannelTypeResource implements SatisfiableRESTResource {
     @GET
     @Produces(MediaType.APPLICATION_JSON)
     @ApiOperation(value = "Gets all available channel types.", response = ChannelTypeDTO.class, responseContainer = "Set")
-    @ApiResponses(value = @ApiResponse(code = 200, message = "OK"))
+    @ApiResponses(value = @ApiResponse(code = 200, message = "OK", response = ChannelTypeDTO.class, responseContainer = "Set"))
     public Response getAll(
             @HeaderParam(HttpHeaders.ACCEPT_LANGUAGE) @ApiParam(value = HttpHeaders.ACCEPT_LANGUAGE) String language) {
         Locale locale = LocaleUtil.getLocale(language);
-        Set<ChannelTypeDTO> channelTypeDTOs = convertToChannelTypeDTOs(channelTypeRegistry.getChannelTypes(locale),
+        List<ChannelTypeDTO> channelTypeDTOs = convertToChannelTypeDTOs(channelTypeRegistry.getChannelTypes(locale),
                 locale);
         return Response.ok(channelTypeDTOs).build();
     }
@@ -92,7 +91,7 @@ public class ChannelTypeResource implements SatisfiableRESTResource {
     @Produces(MediaType.APPLICATION_JSON)
     @ApiOperation(value = "Gets channel type by UID.", response = ChannelTypeDTO.class)
     @ApiResponses(value = {
-            @ApiResponse(code = 200, message = "Channel type with provided channelTypeUID does not exist."),
+            @ApiResponse(code = 200, message = "Channel type with provided channelTypeUID does not exist.", response = ChannelTypeDTO.class),
             @ApiResponse(code = 404, message = "No content") })
     public Response getByUID(@PathParam("channelTypeUID") @ApiParam(value = "channelTypeUID") String channelTypeUID,
             @HeaderParam(HttpHeaders.ACCEPT_LANGUAGE) @ApiParam(value = HttpHeaders.ACCEPT_LANGUAGE) String language) {
@@ -103,12 +102,6 @@ public class ChannelTypeResource implements SatisfiableRESTResource {
         } else {
             return Response.noContent().build();
         }
-    }
-
-    public Set<ChannelTypeDTO> getChannelTypeDTOs(Locale locale) {
-        List<ChannelType> channelTypes = channelTypeRegistry.getChannelTypes();
-        Set<ChannelTypeDTO> channelTypeDTOs = convertToChannelTypeDTOs(channelTypes, locale);
-        return channelTypeDTOs;
     }
 
     private ChannelTypeDTO convertToChannelTypeDTO(ChannelType channelType, Locale locale) {
@@ -134,11 +127,11 @@ public class ChannelTypeResource implements SatisfiableRESTResource {
 
         return new ChannelTypeDTO(channelType.getUID().toString(), channelType.getLabel(), channelType.getDescription(),
                 channelType.getCategory(), channelType.getItemType(), channelType.getKind(), parameters,
-                parameterGroups, channelType.getState(), channelType.getTags());
+                parameterGroups, channelType.getState(), channelType.getTags(), channelType.isAdvanced());
     }
 
-    private Set<ChannelTypeDTO> convertToChannelTypeDTOs(List<ChannelType> channelTypes, Locale locale) {
-        Set<ChannelTypeDTO> channelTypeDTOs = new HashSet<>();
+    private List<ChannelTypeDTO> convertToChannelTypeDTOs(List<ChannelType> channelTypes, Locale locale) {
+        List<ChannelTypeDTO> channelTypeDTOs = new ArrayList<>(channelTypes.size());
 
         for (ChannelType channelType : channelTypes) {
             channelTypeDTOs.add(convertToChannelTypeDTO(channelType, locale));

@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2014-2016 by the respective copyright holders.
+ * Copyright (c) 2014-2017 by the respective copyright holders.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -8,7 +8,6 @@
 package org.eclipse.smarthome.core.scheduler;
 
 import java.text.ParseException;
-import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Collections;
@@ -29,8 +28,6 @@ import org.slf4j.LoggerFactory;
 public abstract class AbstractExpression<E extends AbstractExpressionPart> implements Expression {
 
     private final Logger logger = LoggerFactory.getLogger(this.getClass().getName());
-
-    static SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSS");
 
     private int minimumCandidates = 1;
     private int maximumCandidates = 100;
@@ -95,7 +92,7 @@ public abstract class AbstractExpression<E extends AbstractExpressionPart> imple
             throw new IllegalArgumentException("The start date of the rule must not be null");
         }
         this.startDate = startDate;
-        logger.trace("Setting the start date to {}", sdf.format(startDate));
+        logger.trace("Setting the start date to {}", startDate);
         parseExpression(expression);
     }
 
@@ -185,8 +182,10 @@ public abstract class AbstractExpression<E extends AbstractExpressionPart> imple
             continueSearch = false;
         }
 
-        for (Date aDate : getCandidates()) {
-            logger.trace("Final candidate {} is {}", getCandidates().indexOf(aDate), sdf.format(aDate));
+        if (logger.isTraceEnabled()) {
+            for (Date aDate : getCandidates()) {
+                logger.trace("Final candidate {} is {}", getCandidates().indexOf(aDate), aDate);
+            }
         }
     }
 
@@ -197,9 +196,11 @@ public abstract class AbstractExpression<E extends AbstractExpressionPart> imple
         for (ExpressionPart part : getExpressionParts()) {
             logger.trace("Expanding {} from {} candidates", part.getClass().getSimpleName(), getCandidates().size());
             setCandidates(part.apply(startDate, getCandidates()));
-            logger.trace("Expanded to {} candidates", getCandidates().size());
-            for (Date aDate : getCandidates()) {
-                logger.trace("Candidate {} is {}", getCandidates().indexOf(aDate), sdf.format(aDate));
+            if (logger.isTraceEnabled()) {
+                logger.trace("Expanded to {} candidates", getCandidates().size());
+                for (Date aDate : getCandidates()) {
+                    logger.trace("Candidate {} is {}", getCandidates().indexOf(aDate), aDate);
+                }
             }
             if (searchMode) {
                 pruneFarthest();

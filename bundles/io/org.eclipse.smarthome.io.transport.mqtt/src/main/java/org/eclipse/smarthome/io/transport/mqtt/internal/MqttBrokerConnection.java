@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2014-2016 by the respective copyright holders.
+ * Copyright (c) 2014-2017 by the respective copyright holders.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -7,6 +7,7 @@
  */
 package org.eclipse.smarthome.io.transport.mqtt.internal;
 
+import java.io.IOException;
 import java.security.cert.X509Certificate;
 import java.util.List;
 import java.util.Properties;
@@ -443,7 +444,7 @@ public class MqttBrokerConnection implements MqttCallback {
         publisher.setSenderChannel(new MqttSenderChannel() {
 
             @Override
-            public void publish(String topic, byte[] payload) throws Exception {
+            public void publish(String topic, byte[] payload) throws IOException {
 
                 if (!started) {
                     logger.warn("Broker connection not started. Cannot publish message to topic '{}'", topic);
@@ -457,19 +458,22 @@ public class MqttBrokerConnection implements MqttCallback {
 
                 // publish message asynchronously
                 MqttTopic mqttTopic = client.getTopic(topic);
-                MqttDeliveryToken deliveryToken = mqttTopic.publish(message);
-
-                logger.debug("Publishing message {} to topic '{}'", deliveryToken.getMessageId(), topic);
-                if (!async) {
-                    // wait for publish confirmation
-                    deliveryToken.waitForCompletion(10000);
-                    if (!deliveryToken.isComplete()) {
-                        logger.error(
-                                "Did not receive completion message within timeout limit whilst publishing to topic '{}'",
-                                topic);
+                MqttDeliveryToken deliveryToken;
+                try {
+                    deliveryToken = mqttTopic.publish(message);
+                    logger.debug("Publishing message {} to topic '{}'", deliveryToken.getMessageId(), topic);
+                    if (!async) {
+                        // wait for publish confirmation
+                        deliveryToken.waitForCompletion(10000);
+                        if (!deliveryToken.isComplete()) {
+                            logger.error(
+                                    "Did not receive completion message within timeout limit whilst publishing to topic '{}'",
+                                    topic);
+                        }
                     }
+                } catch (MqttException e) {
+                    logger.error("Could not publish message to topic {}", topic, e);
                 }
-
             }
         });
 

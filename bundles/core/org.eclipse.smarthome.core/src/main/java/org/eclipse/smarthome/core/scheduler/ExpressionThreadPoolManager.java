@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2014-2016 by the respective copyright holders.
+ * Copyright (c) 2014-2017 by the respective copyright holders.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -7,7 +7,6 @@
  */
 package org.eclipse.smarthome.core.scheduler;
 
-import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Date;
@@ -36,10 +35,6 @@ import org.slf4j.LoggerFactory;
  */
 public class ExpressionThreadPoolManager extends ThreadPoolManager {
 
-    private final static Logger logger = LoggerFactory.getLogger(ExpressionThreadPoolManager.class);
-
-    static SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSS");
-
     /**
      * Returns an instance of an expression-driven scheduled thread pool service. If it is the first request for the
      * given pool name, the instance is newly created.
@@ -47,7 +42,7 @@ public class ExpressionThreadPoolManager extends ThreadPoolManager {
      * @param poolName a short name used to identify the pool, e.g. "discovery"
      * @return an instance to use
      */
-    static public ExpressionThreadPoolExecutor getExpressionScheduledPool(String poolName) {
+    public static ExpressionThreadPoolExecutor getExpressionScheduledPool(String poolName) {
         ExecutorService pool = pools.get(poolName);
         if (pool == null) {
             synchronized (pools) {
@@ -59,8 +54,8 @@ public class ExpressionThreadPoolManager extends ThreadPoolManager {
                     ((ThreadPoolExecutor) pool).setKeepAliveTime(THREAD_TIMEOUT, TimeUnit.SECONDS);
                     ((ThreadPoolExecutor) pool).allowCoreThreadTimeOut(true);
                     pools.put(poolName, pool);
-                    logger.debug("Created an expression-drive scheduled thread pool '{}' of size {}",
-                            new Object[] { poolName, cfg });
+                    LoggerFactory.getLogger(ExpressionThreadPoolManager.class)
+                            .debug("Created an expression-drive scheduled thread pool '{}' of size {}", poolName, cfg);
                 }
             }
         }
@@ -73,6 +68,8 @@ public class ExpressionThreadPoolManager extends ThreadPoolManager {
 
     public static class ExpressionThreadPoolExecutor extends ScheduledThreadPoolExecutor {
 
+        private final Logger logger = LoggerFactory.getLogger(ExpressionThreadPoolExecutor.class);
+
         private Map<Expression, Runnable> scheduled = new ConcurrentHashMap<>();
         private Map<Runnable, ArrayList<Future<?>>> futures = Collections
                 .synchronizedMap(new HashMap<Runnable, ArrayList<Future<?>>>());
@@ -82,12 +79,14 @@ public class ExpressionThreadPoolManager extends ThreadPoolManager {
 
         public ExpressionThreadPoolExecutor(final String poolName, int corePoolSize) {
             this(poolName, corePoolSize, new NamedThreadFactory(poolName), new ThreadPoolExecutor.DiscardPolicy() {
+
+                private final Logger logger = LoggerFactory.getLogger(ThreadPoolExecutor.DiscardPolicy.class);
+
                 // The pool is bounded and rejections will happen during shutdown
                 @Override
                 public void rejectedExecution(Runnable runnable, ThreadPoolExecutor threadPoolExecutor) {
                     // Log and discard
-                    logger.warn("Thread pool '{}' rejected execution of {}",
-                            new Object[] { poolName, runnable.getClass() });
+                    logger.debug("Thread pool '{}' rejected execution of {}", poolName, runnable.getClass());
                     super.rejectedExecution(runnable, threadPoolExecutor);
                 }
             });
@@ -101,24 +100,13 @@ public class ExpressionThreadPoolManager extends ThreadPoolManager {
 
         @Override
         protected void afterExecute(Runnable runnable, Throwable throwable) {
-            logger.trace("Cleaning up after the execution of '{}'", runnable.toString());
+            logger.trace("Cleaning up after the execution of '{}'", runnable);
             super.afterExecute(runnable, throwable);
 
             if (runnable instanceof Future) {
-                for (Runnable aRunnable : futures.keySet()) {
-                    Future<?> toDelete = null;
-                    synchronized (futures) {
-                        for (Future<?> future : futures.get(aRunnable)) {
-                            if (future == runnable) {
-                                toDelete = future;
-                                break;
-                            }
-                        }
-                        if (toDelete != null) {
-                            logger.trace("Removing Future '{}' (out of {}) for Runnable '{}'", new Object[] {
-                                    toDelete.toString(), futures.get(aRunnable).size(), aRunnable.toString() });
-                            futures.get(aRunnable).remove(toDelete);
-                        }
+                synchronized (futures) {
+                    for (Runnable aRunnable : futures.keySet()) {
+                        futures.get(aRunnable).removeIf(future -> future == runnable);
                     }
                 }
 
@@ -130,7 +118,7 @@ public class ExpressionThreadPoolManager extends ThreadPoolManager {
                     ArrayList<Future<?>> taskFutures = futures.get(runnable);
 
                     if (taskFutures != null) {
-                        logger.trace("Runnable '{}' has {} Futures scheduled", taskFutures.size());
+                        logger.trace("Runnable '{}' has {} Futures scheduled", runnable, taskFutures.size());
 
                         for (Future<?> future : taskFutures) {
                             if (future.isDone()) {
@@ -138,13 +126,14 @@ public class ExpressionThreadPoolManager extends ThreadPoolManager {
                             }
                         }
 
-                        logger.trace("Runnable '{}' has {} Futures that will be removed", obsoleteFutures.size());
+                        logger.trace("Runnable '{}' has {} Futures that will be removed", runnable,
+                                obsoleteFutures.size());
                         for (Future<?> future : obsoleteFutures) {
                             taskFutures.remove(future);
                             timestamps.remove(future);
                         }
                     } else {
-                        logger.trace("Runnable '{}' has no Futures scheduled");
+                        logger.trace("Runnable '{}' has no Futures scheduled", runnable);
                     }
                 }
             }
@@ -177,8 +166,7 @@ public class ExpressionThreadPoolManager extends ThreadPoolManager {
                             Date time = e.getTimeAfter(now);
 
                             if (time != null) {
-                                logger.trace("Expression's '{}' next execution time is {}", e.toString(),
-                                        sdf.format(time));
+                                logger.trace("Expression's '{}' next execution time is {}", e, time);
 
                                 Runnable task = scheduled.get(e);
 
@@ -207,18 +195,17 @@ public class ExpressionThreadPoolManager extends ThreadPoolManager {
                                                 schedule = true;
                                             } else {
                                                 logger.trace("The task '{}' is already scheduled to execute in {} ms",
-                                                        task.toString(), time.getTime() - now.getTime());
+                                                        task, time.getTime() - now.getTime());
                                             }
                                         }
 
                                         if (schedule) {
-                                            logger.trace("Scheduling the task '{}' to execute in {} ms",
-                                                    task.toString(), time.getTime() - now.getTime());
+                                            logger.trace("Scheduling the task '{}' to execute in {} ms", task,
+                                                    time.getTime() - now.getTime());
                                             Future<?> newFuture = ExpressionThreadPoolExecutor.this.schedule(task,
                                                     time.getTime() - now.getTime(), TimeUnit.MILLISECONDS);
                                             taskFutures.add(newFuture);
-                                            logger.trace("Task '{}' has now {} Futures", task.toString(),
-                                                    taskFutures.size());
+                                            logger.trace("Task '{}' has now {} Futures", task, taskFutures.size());
                                             timestamps.put(newFuture, time);
                                         }
                                     }
@@ -235,7 +222,7 @@ public class ExpressionThreadPoolManager extends ThreadPoolManager {
                                 }
 
                             } else {
-                                logger.info("Expression '{}' has no future executions anymore", e.toString());
+                                logger.info("Expression '{}' has no future executions anymore", e);
                                 finishedExpressions.add(e);
                             }
                         }
@@ -270,7 +257,7 @@ public class ExpressionThreadPoolManager extends ThreadPoolManager {
 
         public void schedule(final Runnable task, final Expression expression) {
             if (task == null || expression == null) {
-                throw new NullPointerException();
+                throw new IllegalArgumentException("Task can not be scheduled as task or expression is null.");
             }
 
             if (monitor == null) {
@@ -279,12 +266,12 @@ public class ExpressionThreadPoolManager extends ThreadPoolManager {
             }
 
             scheduled.put(expression, task);
-            logger.trace("Scheduled task '{}' using expression '{}'", task.toString(), expression.toString());
+            logger.trace("Scheduled task '{}' using expression '{}'", task, expression);
             monitor.interrupt();
         }
 
         public boolean remove(Expression expression) {
-            logger.trace("Removing the expression '{}' from the scheduler", expression.toString());
+            logger.trace("Removing the expression '{}' from the scheduler", expression);
             Runnable task = scheduled.remove(expression);
 
             if (task != null) {
@@ -313,34 +300,35 @@ public class ExpressionThreadPoolManager extends ThreadPoolManager {
         }
 
         public boolean removeFutures(Runnable task) {
-            logger.trace("Removing Runnable '{}' from the scheduler", task.toString());
+            logger.trace("Removing Runnable '{}' from the scheduler", task);
 
             ArrayList<Future<?>> obsoleteFutures = new ArrayList<Future<?>>();
             synchronized (futures) {
                 ArrayList<Future<?>> taskFutures = futures.get(task);
-                if (taskFutures.size() != 0) {
-                    logger.trace("Runnable '{}' has {} Futures to be removed", task.toString(), taskFutures.size());
-                    for (Future<?> future : taskFutures) {
-                        future.cancel(false);
-                        timestamps.remove(future);
-                        obsoleteFutures.add(future);
+                if (taskFutures != null) {
+                    if (taskFutures.size() != 0) {
+                        logger.trace("Runnable '{}' has {} Futures to be removed", task, taskFutures.size());
+                        for (Future<?> future : taskFutures) {
+                            future.cancel(false);
+                            timestamps.remove(future);
+                            obsoleteFutures.add(future);
+                        }
+                    }
+
+                    for (Future<?> future : obsoleteFutures) {
+                        taskFutures.remove(future);
+                    }
+
+                    super.purge();
+
+                    if (taskFutures.size() == 0) {
+                        futures.remove(task);
+                        return true;
                     }
                 }
-
-                for (Future<?> future : obsoleteFutures) {
-                    taskFutures.remove(future);
-                }
-
-                super.purge();
-
-                if (taskFutures.size() == 0) {
-                    futures.remove(task);
-                    return true;
-                } else {
-                    return false;
-                }
+                return false;
             }
-        }
 
+        }
     }
 }

@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2014-2016 by the respective copyright holders.
+ * Copyright (c) 2014-2017 by the respective copyright holders.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -7,7 +7,6 @@
  */
 package org.eclipse.smarthome.core.items;
 
-import org.eclipse.smarthome.core.types.Convertible;
 import org.eclipse.smarthome.core.types.State;
 import org.slf4j.LoggerFactory;
 
@@ -77,9 +76,9 @@ public class ItemUtil {
     }
 
     public static State convertToAcceptedState(final State state, final Item item) {
-        if (item != null && !isAccepted(item, state) && state instanceof Convertible) {
+        if (item != null && !isAccepted(item, state)) {
             for (Class<? extends State> acceptedType : item.getAcceptedDataTypes()) {
-                State convertedState = ((Convertible) state).as(acceptedType);
+                State convertedState = state.as(acceptedType);
                 if (convertedState != null) {
                     LoggerFactory.getLogger(ItemUtil.class).debug("Converting {} '{}' to {} '{}' for item '{}'",
                             state.getClass().getSimpleName(), state.toString(),

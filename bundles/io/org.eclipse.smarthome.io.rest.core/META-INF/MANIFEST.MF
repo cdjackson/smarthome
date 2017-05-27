@@ -4,13 +4,14 @@ Bundle-Name: Eclipse SmartHome Core REST API
 Bundle-SymbolicName: org.eclipse.smarthome.io.rest.core
 Bundle-Version: 0.9.0.qualifier
 Bundle-Vendor: Eclipse.org
-Bundle-RequiredExecutionEnvironment: JavaSE-1.7
+Bundle-RequiredExecutionEnvironment: JavaSE-1.8
 Import-Package: com.google.common.base,
  com.google.common.collect,
  io.swagger.annotations;resolution:=optional,
  javax.annotation.security;resolution:=optional,
  javax.ws.rs,
  javax.ws.rs.core,
+ org.apache.commons.lang,
  org.eclipse.smarthome.config.core,
  org.eclipse.smarthome.config.core.dto,
  org.eclipse.smarthome.config.core.status,
@@ -33,7 +34,11 @@ Import-Package: com.google.common.base,
  org.eclipse.smarthome.core.persistence,
  org.eclipse.smarthome.core.persistence.dto,
  org.eclipse.smarthome.core.thing,
+ org.eclipse.smarthome.core.thing.binding.firmware,
  org.eclipse.smarthome.core.thing.dto,
+ org.eclipse.smarthome.core.thing.firmware,
+ org.eclipse.smarthome.core.thing.firmware.dto,
+ org.eclipse.smarthome.core.thing.i18n,
  org.eclipse.smarthome.core.thing.link,
  org.eclipse.smarthome.core.thing.link.dto,
  org.eclipse.smarthome.core.thing.type,

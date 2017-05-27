@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2014-2016 by the respective copyright holders.
+ * Copyright (c) 2014-2017 by the respective copyright holders.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -9,7 +9,6 @@ package org.eclipse.smarthome.core.internal.i18n;
 
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Dictionary;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -136,8 +135,7 @@ public class ResourceBundleTracker extends ResolvedBundleTracker {
      * @return <code>true</code> if the bundle is a fragment and <code>false</code> if it is a host.
      */
     private boolean isFragmentBundle(Bundle bundle) {
-        Dictionary<String, String> h = bundle.getHeaders();
-        return h.get("Fragment-Host") != null;
+        return pkgAdmin.getBundleType(bundle) == PackageAdmin.BUNDLE_TYPE_FRAGMENT;
     }
 
     /**

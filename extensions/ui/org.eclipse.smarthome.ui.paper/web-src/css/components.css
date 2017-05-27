@@ -280,6 +280,10 @@ md-slider.md-default-theme.hue .md-thumb:after {
 	margin-top: -80px;
 }
 
+.card .extension-label {
+	max-width: 90%;
+}
+
 /* Fab Item / List Item */
 .fab-item, .list-item {
 	position: relative;
@@ -318,6 +322,50 @@ md-slider.md-default-theme.hue .md-thumb:after {
 	background: white;
 }
 
+.extensions .card .item-content {
+	padding-top: 5px;
+}
+
+.extensions .card.item {
+	padding: 7px 7px 0px 7px;
+}
+
+.extensions .card .description {
+    padding: 2px;
+}
+
+.extensions .header-toolbar button {
+	margin:8px 0px 8px 0px;
+}
+
+.extensions .container.showCards {
+	margin-top: 10px;
+}
+
+.showCards .fab-item .item-content {
+    margin-left: 100px;
+    min-height: 60px;
+}
+
+.showCards .fab-item .actions {
+	text-align: right;
+	text-align: -webkit-right;
+	text-align: -moz-right;
+}
+
+.showCards .verticalAlign {
+	display: inline-block;
+	height: 100%;
+	vertical-align: middle;
+}
+
+.showCards .imageAlign {
+	width: 83px;
+	height: 56px;
+	float: left;
+	text-align: center
+}
+
 .fab-item .circle {
 	border-radius: 50%;
 	width: 56px;
@@ -327,6 +375,15 @@ md-slider.md-default-theme.hue .md-thumb:after {
 	text-align: center;
 	font-size: 30px;
 	line-height: 54px;
+}
+
+.fab-item .rectangle {
+    max-width: 83px;
+    max-height: 56px;
+    background-color: transparent;
+    text-align: center;
+    font-size: 30px;
+    line-height: 54px;
 }
 
 .fab-item .circle.green {
@@ -456,7 +513,7 @@ md-progress-circular.md-default-theme .md-inner .md-left .md-half-circle
 	position: relative;
 }
 
-.selection-list>div:hover {
+.selection-list>div:hover, .pointer {
 	cursor: pointer;
 }
 
@@ -553,8 +610,8 @@ md-progress-circular.md-default-theme .md-inner .md-left .md-half-circle
 	margin-top: 0px;
 }
 
-.parameter>div {
-	min-height: 80px;
+.parameter {
+    min-height: 110px;
 }
 
 .parameter>div md-select-value>span:first-child, .parameter>div md-select-value .md-text>span:first-child{
@@ -567,6 +624,27 @@ md-progress-circular.md-default-theme .md-inner .md-left .md-half-circle
 
 .parameter>div p.hint {
 	margin-top: 0px;
+    height: 20px;
+}
+
+.parameter>div .nowrap{
+	white-space: nowrap;
+}
+
+.parameter>div p.hint .desc {
+	overflow: hidden;
+	text-overflow: ellipsis;
+	float: left;
+}
+
+.parameter>div p.hint .moreLess {
+	cursor: pointer;
+	color: blue;
+	float: right;
+}
+
+.parameter>div p.hint .reducedWidth{
+	width: 85%;
 }
 
 .includeConfig legend {
@@ -702,6 +780,7 @@ md-progress-circular.md-default-theme .md-inner .md-left .md-half-circle
 
 .cursor-pointer {
 	cursor: pointer;
+	outline: none;
 }
 
 textarea.scriptArea {
@@ -790,7 +869,7 @@ md-input-container .md-errors-spacer {
 	font-style:italic;
 }
 
-.item-edit, .inboxContainer {
+.item-edit {
 	margin-top: 20px;
 }
 
@@ -803,12 +882,55 @@ md-input-container .md-errors-spacer {
 }
 
 .thing-properties {
-	margin-left: -5px;
+	margin-left: 20px;
 	padding-left: 5px;
 }
 
-.thing-properties+table {
-	width: 0%;
+.thing-properties-table {
+    border-bottom: solid 1px #ddd;
+}
+
+.thing-properties-table td:nth-child(1) {
+    white-space: nowrap;
+	width: 25%;
+}
+
+.thing-properties-table td:nth-child(2) {
+    width: 75%;
+}
+
+.current-firmware {
+	margin-left: 5px;
+}
+
+.firmware-status {
+    margin-left: 10px;
+}
+
+.firmware-progressbar {
+	margin-bottom: 10px;
+	margin-top: 10px;
+}
+
+.firmware-table {
+    border-bottom: solid 1px #ddd;
+}
+
+.firmware-table td:nth-child(1) {
+    white-space: nowrap;
+    width: 12%;
+}
+
+.firmware-table td:nth-child(2) {
+    width: 15%;
+}
+
+.firmware-table .firmware-detail-data {
+	vertical-align: middle;
+}
+
+.firmware-table .firmware-detail-button {
+    width: 100px;
 }
 
 md-chips .md-chip-remove-container {
@@ -1268,4 +1390,49 @@ input[type=number].multiSel::-webkit-outer-spin-button {
 .multiSelect ul li {
 	outline: none;
 	cursor: pointer;
+}
+
+.material-icons.launch-icon {
+	color: black;
+	background-color: transparent;
+	font-size: 16px;
+}
+
+.extensions .card .description.rule-ext-desc {
+	padding-bottom: 10px;
+	padding-top:4px;
+}
+
+.backdrop {
+	position: fixed;
+	top: 0;
+	left: 0;
+	background: #a8a8a8;
+	opacity: 0.8;
+	z-index: 998;
+	height: 100%;
+	width: 100%;
+}
+
+.progressbar {
+	 position:fixed;
+	 top: 50%;
+	 left: 50%;
+     z-index:999;
+}
+.inboxSearch {
+	margin-bottom: 10px;
+}
+
+md-progress-circular.firmware {
+    margin: 5px 12px 5px 12px;
+    display: inline-block;
+}
+
+.middle-aligned.table-bordered>tbody>tr>td{
+	vertical-align: middle;
+}
+.no-animation * {
+   -webkit-transition: none !important;
+   transition: none !important;
 }

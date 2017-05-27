@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2014-2016 by the respective copyright holders.
+ * Copyright (c) 2014-2017 by the respective copyright holders.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -22,9 +22,7 @@ import java.util.concurrent.ExecutorService;
 import org.eclipse.smarthome.core.common.ThreadPoolManager;
 import org.eclipse.smarthome.core.events.EventPublisher;
 import org.eclipse.smarthome.core.items.events.ItemEventFactory;
-import org.eclipse.smarthome.core.library.internal.StateConverterUtil;
 import org.eclipse.smarthome.core.types.Command;
-import org.eclipse.smarthome.core.types.Convertible;
 import org.eclipse.smarthome.core.types.RefreshType;
 import org.eclipse.smarthome.core.types.State;
 import org.eclipse.smarthome.core.types.StateDescription;
@@ -92,11 +90,7 @@ abstract public class GenericItem implements ActiveItem {
      */
     @Override
     public State getStateAs(Class<? extends State> typeClass) {
-        if (state instanceof Convertible) {
-            return ((Convertible) state).as(typeClass);
-        } else {
-            return StateConverterUtil.defaultConversion(state, typeClass);
-        }
+        return state.as(typeClass);
     }
 
     /**

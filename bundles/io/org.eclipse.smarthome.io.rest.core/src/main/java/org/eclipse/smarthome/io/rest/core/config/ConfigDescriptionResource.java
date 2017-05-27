@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2014-2016 by the respective copyright holders.
+ * Copyright (c) 2014-2017 by the respective copyright holders.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -28,7 +28,7 @@ import org.eclipse.smarthome.config.core.dto.ConfigDescriptionDTOMapper;
 import org.eclipse.smarthome.core.auth.Role;
 import org.eclipse.smarthome.io.rest.JSONResponse;
 import org.eclipse.smarthome.io.rest.LocaleUtil;
-import org.eclipse.smarthome.io.rest.SatisfiableRESTResource;
+import org.eclipse.smarthome.io.rest.RESTResource;
 
 import com.google.common.base.Function;
 import com.google.common.collect.Iterables;
@@ -45,11 +45,12 @@ import io.swagger.annotations.ApiResponses;
  *
  * @author Dennis Nobel - Initial contribution
  * @author Chris Jackson - Modify response to use JSONResponse
+ * @author Franck Dechavanne - Added DTOs to ApiResponses
  */
 @Path(ConfigDescriptionResource.PATH_CONFIG_DESCRIPTIONS)
 @RolesAllowed({ Role.ADMIN })
 @Api(value = ConfigDescriptionResource.PATH_CONFIG_DESCRIPTIONS)
-public class ConfigDescriptionResource implements SatisfiableRESTResource {
+public class ConfigDescriptionResource implements RESTResource {
 
     /** The URI path to this resource */
     public static final String PATH_CONFIG_DESCRIPTIONS = "config-descriptions";
@@ -66,7 +67,7 @@ public class ConfigDescriptionResource implements SatisfiableRESTResource {
     @GET
     @Produces(MediaType.APPLICATION_JSON)
     @ApiOperation(value = "Gets all available config descriptions.", response = ConfigDescriptionDTO.class, responseContainer = "List")
-    @ApiResponses(value = @ApiResponse(code = 200, message = "OK"))
+    @ApiResponses(value = @ApiResponse(code = 200, message = "OK", response = ConfigDescriptionDTO.class, responseContainer = "List"))
     public Response getAll(@HeaderParam("Accept-Language") @ApiParam(value = "Accept-Language") String language) {
         Locale locale = LocaleUtil.getLocale(language);
         Iterable<ConfigDescriptionDTO> transform = Iterables
@@ -78,7 +79,7 @@ public class ConfigDescriptionResource implements SatisfiableRESTResource {
     @Path("/{uri}")
     @Produces(MediaType.APPLICATION_JSON)
     @ApiOperation(value = "Gets a config description by URI.", response = ConfigDescriptionDTO.class)
-    @ApiResponses(value = { @ApiResponse(code = 200, message = "OK"),
+    @ApiResponses(value = { @ApiResponse(code = 200, message = "OK", response = ConfigDescriptionDTO.class),
             @ApiResponse(code = 400, message = "Invalid URI syntax"), @ApiResponse(code = 404, message = "Not found") })
     public Response getByURI(@HeaderParam("Accept-Language") @ApiParam(value = "Accept-Language") String language,
             @PathParam("uri") @ApiParam(value = "uri") String uri) {

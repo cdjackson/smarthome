@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2014-2016 by the respective copyright holders.
+ * Copyright (c) 2014-2017 by the respective copyright holders.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -263,7 +263,7 @@ public class ThingLinkManager extends AbstractTypedEventSubscriber<ThingStatusIn
             try {
                 handler.channelLinked(channel.getUID());
             } catch (Exception ex) {
-                logger.error("Exception occured while informing handler:" + ex.getMessage(), ex);
+                logger.error("Exception occurred while informing handler:" + ex.getMessage(), ex);
             }
         } else {
             logger.trace("Can not inform handler about linked channel, because no handler is assigned to the thing {}.",
@@ -282,7 +282,7 @@ public class ThingLinkManager extends AbstractTypedEventSubscriber<ThingStatusIn
             try {
                 handler.channelUnlinked(channel.getUID());
             } catch (Exception ex) {
-                logger.error("Exception occured while informing handler:" + ex.getMessage(), ex);
+                logger.error("Exception occurred while informing handler:" + ex.getMessage(), ex);
             }
         } else {
             logger.trace(

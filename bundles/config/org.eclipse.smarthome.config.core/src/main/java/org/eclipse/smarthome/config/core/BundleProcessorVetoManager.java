@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2014-2016 by the respective copyright holders.
+ * Copyright (c) 2014-2017 by the respective copyright holders.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -59,16 +59,18 @@ public class BundleProcessorVetoManager<T> implements BundleProcessorListener {
     }
 
     @Override
-    public void bundleFinished(final BundleProcessor context, final Bundle bundle) {
-        vetoes.remove(bundle.getBundleId(), context);
-        if (vetoes.get(bundle.getBundleId()).isEmpty()) {
-            logger.debug("Finished loading meta-data of bundle '{}'.", bundle.getSymbolicName());
-            for (T object : queue.removeAll(bundle.getBundleId())) {
-                action.apply(object);
+    public synchronized void bundleFinished(final BundleProcessor context, final Bundle bundle) {
+        synchronized (bundle) {
+            vetoes.remove(bundle.getBundleId(), context);
+            if (vetoes.get(bundle.getBundleId()).isEmpty()) {
+                logger.debug("Finished loading meta-data of bundle '{}'.", bundle.getSymbolicName());
+                for (T object : queue.removeAll(bundle.getBundleId())) {
+                    action.apply(object);
+                }
+            } else {
+                logger.debug("'{}' still vetoed by '{}', queueing '{}'", bundle.getSymbolicName(),
+                        vetoes.get(bundle.getBundleId()), queue.get(bundle.getBundleId()));
             }
-        } else {
-            logger.debug("'{}' still vetoed by '{}', queueing '{}'", bundle.getSymbolicName(),
-                    vetoes.get(bundle.getBundleId()), queue.get(bundle.getBundleId()));
         }
     }
 
@@ -94,31 +96,33 @@ public class BundleProcessorVetoManager<T> implements BundleProcessorListener {
      *
      * @param object the argument for the action
      */
-    public void applyActionFor(final T object) {
+    public void applyActionFor(final Class<?> classFromWatchedBundle, final T object) {
         boolean veto = false;
-        Bundle bundle = getBundle(object.getClass());
-        long bundleId = bundle.getBundleId();
-        for (BundleProcessor proc : bundleProcessors) {
-            if (!proc.hasFinishedLoading(bundle)) {
-                veto = true;
-                if (!vetoes.containsEntry(bundleId, proc)) {
-                    logger.trace("Marking '{}' as vetoed by '{}'", bundle.getSymbolicName(), proc);
-                    vetoes.put(bundleId, proc);
+        Bundle bundle = getBundle(classFromWatchedBundle);
+        synchronized (bundle) {
+            long bundleId = bundle.getBundleId();
+            for (BundleProcessor proc : bundleProcessors) {
+                if (!proc.hasFinishedLoading(bundle)) {
+                    veto = true;
+                    if (!vetoes.containsEntry(bundleId, proc)) {
+                        logger.trace("Marking '{}' as vetoed by '{}'", bundle.getSymbolicName(), proc);
+                        vetoes.put(bundleId, proc);
+                    }
+                } else {
+                    logger.trace("'{}' already finished processing '{}'", proc, bundle.getSymbolicName());
                 }
+            }
+            if (veto) {
+                if (!queue.containsEntry(bundleId, object)) {
+                    logger.trace("Queueing '{}' in bundle '{}'", object, bundle.getSymbolicName());
+                    queue.put(bundleId, object);
+                }
+                logger.debug("Meta-data of bundle '{}' is not fully loaded ({}), deferring action for '{}'",
+                        bundle.getSymbolicName(), vetoes.get(bundleId), object);
             } else {
-                logger.trace("'{}' already finished processing '{}'", proc, bundle.getSymbolicName());
+                logger.trace("No veto for bundle '{}', directly executing the action", bundle.getSymbolicName());
+                action.apply(object);
             }
-        }
-        if (veto) {
-            if (!queue.containsEntry(bundle, object)) {
-                logger.trace("Queueing '{}' in bundle '{}'", object, bundle.getSymbolicName());
-                queue.put(bundleId, object);
-            }
-            logger.debug("Meta-data of bundle '{}' is not fully loaded ({}), deferring action for '{}'",
-                    bundle.getSymbolicName(), vetoes.get(bundleId), object);
-        } else {
-            logger.trace("No veto for bundle '{}', directly executing the action", bundle.getSymbolicName());
-            action.apply(object);
         }
     }
 

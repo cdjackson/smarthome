@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2014-2016 by the respective copyright holders.
+ * Copyright (c) 2014-2017 by the respective copyright holders.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -9,6 +9,8 @@ package org.eclipse.smarthome.model.core.internal.folder.test
 
 import static org.hamcrest.CoreMatchers.*
 import static org.junit.Assert.*
+
+import java.nio.file.Files
 
 import org.apache.commons.io.FileUtils
 import org.apache.commons.lang.SystemUtils
@@ -42,7 +44,8 @@ import org.osgi.service.cm.ManagedService
  *  Since the assertions in the tests depend on handling the events,
  *  putting the current Thread to sleep after the file operations is also necessary.
  *
- *  @author Mihaela Memova
+ *  @author Mihaela Memova - Initial Contribution
+ *  @author Stefan Triller - added hidden file test
  *
  */
 
@@ -50,6 +53,8 @@ class FolderObserverTest extends OSGiTest {
 
     /** The directory which is watched for changes */
     private final static String WATCHED_DIRECTORY = "watched_dir"
+    /** The directory which is watched for changes */
+    private final static String UNWATCHED_DIRECTORY = "unwatched_dir"
     /** The name of the existing subdirectory which is used in most of the test cases */
     private final static String EXISTING_SUBDIR_NAME = "existing_subdir"
     /** The path of the existing subdirectory which is used in most of the test cases */
@@ -484,6 +489,54 @@ class FolderObserverTest extends OSGiTest {
 
         waitForAssert {
             assertThat modelRepo.isAddOrRefreshModelMethodCalled, is(true)
+        }
+    }
+
+    @Test
+    void 'test ignore hidden files with extension that is registered'() {
+        /*
+         * The following method creates a hidden file in an existing directory. The file's extension is
+         * in the configuration properties and there is a registered ModelParser for it.
+         * addOrRefreshModel() method invocation is NOT expected, the model should be ignored since the file is hidden
+         */
+        String validExtension = "java"
+
+        Dictionary<String, String> configProps = new Hashtable<String, String>()
+        configProps.put(EXISTING_SUBDIR_NAME, "txt,jpg," + validExtension)
+        config.update(configProps)
+        sleep(WAIT_ABSTRACTWATCHQUEUEREADER_TO_START)
+
+        String mockFileWithValidExtName = ".HiddenNewlyCreatedMockFile" + "." + validExtension
+
+        if(!SystemUtils.IS_OS_WINDOWS) {
+            /*
+             * In some OS, like MacOS, creating an empty file is not related to sending an ENTRY_CREATE event.
+             * So, it's necessary to put some initial content in that file.
+             */
+            String mockFileWithValidExtPath = EXISTING_SUBDIR_PATH + File.separatorChar + mockFileWithValidExtName
+            File mockFileWithValidExt = new File(mockFileWithValidExtPath)
+            mockFileWithValidExt.createNewFile()
+            mockFileWithValidExt << INITIAL_FILE_CONTENT
+        }
+        else {
+            /* In windows a hidden file cannot be created with a single api call.
+             * The file must be created and afterwards it needs a filesystem property set for a file to be hidden.
+             * But the initial creation already triggers the folder observer mechanism,
+             * therefore the file is created in an unobserved directory, hidden and afterwards moved to the observed directory
+             */
+            new File(UNWATCHED_DIRECTORY).mkdirs()
+            String mockFileWithValidExtPath = UNWATCHED_DIRECTORY + File.separatorChar + mockFileWithValidExtName
+            File mockFileWithValidExt = new File(mockFileWithValidExtPath)
+            mockFileWithValidExt.createNewFile()
+            Files.setAttribute (mockFileWithValidExt.toPath(), "dos:hidden", true);
+            FileUtils.moveFileToDirectory(mockFileWithValidExt, new File(EXISTING_SUBDIR_PATH), false)
+            FileUtils.deleteDirectory(new File(UNWATCHED_DIRECTORY))
+        }
+        sleep(WAIT_EVENT_TO_BE_HANDLED)
+
+        waitForAssert{
+            assertThat("A model should NOT be added/refreshed on new hidden file creation in the watched directory",
+                    modelRepo.isAddOrRefreshModelMethodCalled,is(false))
         }
     }
 

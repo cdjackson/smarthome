@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2014-2016 by the respective copyright holders.
+ * Copyright (c) 2014-2017 by the respective copyright holders.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -53,12 +53,6 @@ public class HSBTypeTest {
     private void compareHsbToRgbValues(String hsbValues, int red, int green, int blue) {
         HSBType hsb = new HSBType(hsbValues);
 
-        System.out.println("HSB INPUT: " + hsbValues);
-        System.out.println("RGB EXPECTED: " + red + "," + green + "," + blue);
-        System.out.println("RGB ACTUAL (0-100): " + hsb.getRed() + "," + hsb.getGreen() + "," + hsb.getBlue());
-        System.out.println("RGB ACTUAL (0-255): " + convertPercentToByte(hsb.getRed()) + ","
-                + convertPercentToByte(hsb.getGreen()) + "," + convertPercentToByte(hsb.getBlue()) + "\n");
-
         assertEquals(red, convertPercentToByte(hsb.getRed()));
         assertEquals(green, convertPercentToByte(hsb.getGreen()));
         assertEquals(blue, convertPercentToByte(hsb.getBlue()));
@@ -80,10 +74,6 @@ public class HSBTypeTest {
     private void compareRgbToHsbValues(String hsbValues, int red, int green, int blue) {
         HSBType hsb = new HSBType(hsbValues);
         HSBType hsbRgb = HSBType.fromRGB(red, green, blue);
-
-        System.out.println("HSB EXPECTED: " + hsbValues);
-        System.out.println(
-                "HSB ACTUAL  : " + hsbRgb.getHue() + "," + hsbRgb.getSaturation() + "," + hsbRgb.getBrightness());
 
         assertEquals(hsb.getHue(), hsbRgb.getHue());
         assertEquals(hsb.getSaturation(), hsbRgb.getSaturation());

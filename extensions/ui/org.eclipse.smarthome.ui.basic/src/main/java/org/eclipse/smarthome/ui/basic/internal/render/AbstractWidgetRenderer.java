@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2014-2016 by the respective copyright holders.
+ * Copyright (c) 2014-2017 by the respective copyright holders.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -85,6 +85,7 @@ abstract public class AbstractWidgetRenderer implements WidgetRenderer {
         snippet = StringUtils.replace(snippet, "%item%", w.getItem() != null ? w.getItem() : "");
         snippet = StringUtils.replace(snippet, "%label%", getLabel(w));
         snippet = StringUtils.replace(snippet, "%value%", getValue(w));
+        snippet = StringUtils.replace(snippet, "%has_value%", new Boolean(hasValue(w)).toString());
         snippet = StringUtils.replace(snippet, "%visibility_class%",
                 itemUIRegistry.getVisiblity(w) ? "" : "mdl-form__row--hidden");
 
@@ -156,6 +157,17 @@ abstract public class AbstractWidgetRenderer implements WidgetRenderer {
         } else {
             return "";
         }
+    }
+
+    /**
+     * Returns whether the item associated to widget has a value or not
+     *
+     * @param w widget
+     * @return true if the item associated to widget has a value
+     */
+    public boolean hasValue(Widget w) {
+        String label = itemUIRegistry.getLabel(w);
+        return (label.indexOf('[') != -1);
     }
 
     /**

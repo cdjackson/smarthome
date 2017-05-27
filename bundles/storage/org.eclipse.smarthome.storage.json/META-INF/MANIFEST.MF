@@ -6,8 +6,6 @@ Bundle-ManifestVersion: 2
 Bundle-License: http://www.eclipse.org/legal/epl-v10.html
 Import-Package: com.google.gson,
  com.google.gson.annotations,
- com.google.gson.internal,
- com.google.gson.internal.bind,
  com.google.gson.reflect,
  com.google.gson.stream,
  org.eclipse.smarthome.config.core,
@@ -18,6 +16,6 @@ Import-Package: com.google.gson,
  org.osgi.service.event,
  org.slf4j
 Bundle-SymbolicName: org.eclipse.smarthome.storage.json;singleton:=true
-Bundle-RequiredExecutionEnvironment: JavaSE-1.7
+Bundle-RequiredExecutionEnvironment: JavaSE-1.8
 Bundle-ClassPath: .
 Service-Component: OSGI-INF/*.xml

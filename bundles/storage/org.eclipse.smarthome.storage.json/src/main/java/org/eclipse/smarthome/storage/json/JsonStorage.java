@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2014-2016 by the respective copyright holders.
+ * Copyright (c) 2014-2017 by the respective copyright holders.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -15,6 +15,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Timer;
@@ -29,7 +30,6 @@ import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.JsonIOException;
 import com.google.gson.JsonSyntaxException;
-import com.google.gson.internal.LinkedTreeMap;
 
 /**
  * The JsonStorage is concrete implementation of the {@link Storage} interface.
@@ -40,6 +40,7 @@ import com.google.gson.internal.LinkedTreeMap;
  * at any time
  *
  * @author Chris Jackson - Initial Contribution
+ * @author Stefan Triller - Removed dependency to internal GSon packages
  */
 public class JsonStorage<T> implements Storage<T> {
 
@@ -61,7 +62,7 @@ public class JsonStorage<T> implements Storage<T> {
 
     private File file;
     private ClassLoader classLoader;
-    private final Map<String, LinkedTreeMap<String, Object>> map = new ConcurrentHashMap<String, LinkedTreeMap<String, Object>>();
+    private final Map<String, Map<String, Object>> map = new ConcurrentHashMap<String, Map<String, Object>>();
 
     private transient Gson mapper;
 
@@ -72,40 +73,46 @@ public class JsonStorage<T> implements Storage<T> {
         this.writeDelay = writeDelay;
         this.maxDeferredPeriod = maxDeferredPeriod;
 
-        this.mapper = new GsonBuilder().registerTypeAdapterFactory(new PropertiesTypeAdapterFactory())
+        this.mapper = new GsonBuilder().registerTypeAdapter(Map.class, new StringObjectMapDeserializer())
                 .setPrettyPrinting().create();
+
         commitTimer = new Timer();
 
+        Map<String, Map<String, Object>> inputMap = null;
         if (file.exists()) {
-            Map<String, LinkedTreeMap<String, Object>> inputMap;
 
             // Read the file
             inputMap = readDatabase(file);
+        }
 
-            // If there was an error reading the file, then try one of the backup files
-            if (inputMap == null) {
-                logger.info("Json storage file at '{}' was not read.", file.getAbsolutePath());
-                for (int cnt = 1; cnt <= maxBackupFiles; cnt++) {
-                    File backupFile = getBackupFile(cnt);
-                    if (backupFile == null) {
-                        break;
-                    }
-                    inputMap = readDatabase(backupFile);
-                    if (inputMap != null) {
-                        logger.info("Json storage file at '{}' is used (backup {}).", backupFile.getAbsolutePath(),
-                                cnt);
-                        break;
-                    }
-                }
+        // If there was an error reading the file, then try one of the backup files
+        if (inputMap == null) {
+            if (file.exists()) {
+                logger.info("Json storage file at '{}' seems to be corrupt - checking for a backup.",
+                        file.getAbsolutePath());
+            } else {
+                logger.debug("Json storage file at '{}' does not exist - checking for a backup.",
+                        file.getAbsolutePath());
             }
-
-            // If we've read data from a file, then add it to the map
-            if (inputMap != null) {
-                map.putAll(inputMap);
+            for (int cnt = 1; cnt <= maxBackupFiles; cnt++) {
+                File backupFile = getBackupFile(cnt);
+                if (backupFile == null) {
+                    break;
+                }
+                inputMap = readDatabase(backupFile);
+                if (inputMap != null) {
+                    logger.info("Json storage file at '{}' is used (backup {}).", backupFile.getAbsolutePath(), cnt);
+                    break;
+                }
             }
         }
 
-        logger.debug("Opened Json storage file at '{}'.", file.getAbsolutePath());
+        // If we've read data from a file, then add it to the map
+        if (inputMap != null) {
+            map.putAll(inputMap);
+            logger.debug("Opened Json storage file at '{}'.", file.getAbsolutePath());
+        }
+
     }
 
     /**
@@ -113,11 +120,11 @@ public class JsonStorage<T> implements Storage<T> {
      */
     @Override
     public T put(String key, T value) {
-        LinkedTreeMap<String, Object> val = new LinkedTreeMap<String, Object>();
+        Map<String, Object> val = new LinkedHashMap<String, Object>();
         val.put(CLASS, value.getClass().getName());
         val.put(VALUE, value);
 
-        LinkedTreeMap<String, Object> previousValue = map.get(key);
+        Map<String, Object> previousValue = map.get(key);
 
         map.put(key, val);
         deferredCommit();
@@ -134,7 +141,7 @@ public class JsonStorage<T> implements Storage<T> {
      */
     @Override
     public T remove(String key) {
-        LinkedTreeMap<String, Object> removedElement = map.remove(key);
+        Map<String, Object> removedElement = map.remove(key);
         deferredCommit();
         return deserialize(removedElement);
     }
@@ -144,7 +151,7 @@ public class JsonStorage<T> implements Storage<T> {
      */
     @Override
     public T get(String key) {
-        LinkedTreeMap<String, Object> value = map.get(key);
+        Map<String, Object> value = map.get(key);
         if (value == null) {
             return null;
         }
@@ -178,7 +185,7 @@ public class JsonStorage<T> implements Storage<T> {
      * the calling bundle.
      */
     @SuppressWarnings("unchecked")
-    private T deserialize(LinkedTreeMap<String, Object> jsonValue) {
+    private T deserialize(Map<String, Object> jsonValue) {
         if (jsonValue == null) {
             // nothing to deserialize
             return null;
@@ -204,13 +211,14 @@ public class JsonStorage<T> implements Storage<T> {
         return value;
     }
 
-    private Map<String, LinkedTreeMap<String, Object>> readDatabase(File inputFile) {
+    @SuppressWarnings("unchecked")
+    private Map<String, Map<String, Object>> readDatabase(File inputFile) {
         try {
-            final Map<String, LinkedTreeMap<String, Object>> inputMap = new ConcurrentHashMap<String, LinkedTreeMap<String, Object>>();
+            final Map<String, Map<String, Object>> inputMap = new ConcurrentHashMap<String, Map<String, Object>>();
 
             FileReader reader = new FileReader(inputFile);
-            HashMap<String, LinkedTreeMap<String, Object>> type = new HashMap<String, LinkedTreeMap<String, Object>>();
-            HashMap<String, LinkedTreeMap<String, Object>> loadedMap = mapper.fromJson(reader, type.getClass());
+            Map<String, Map<String, Object>> type = new HashMap<String, Map<String, Object>>();
+            Map<String, Map<String, Object>> loadedMap = mapper.fromJson(reader, type.getClass());
 
             if (loadedMap != null && loadedMap.size() != 0) {
                 map.putAll(loadedMap);
@@ -252,24 +260,32 @@ public class JsonStorage<T> implements Storage<T> {
                 fileTimes.get(fileTimes.size() - age) + SEPARATOR + file.getName());
     }
 
+    private void writeDatabaseFile(File dataFile, String data) {
+        try (FileOutputStream outputStream = new FileOutputStream(dataFile, false)) {
+            outputStream.write(data.getBytes());
+        } catch (Exception e) {
+            logger.error("Error writing JsonDB to {}. Cause {}.", dataFile.getPath(), e.getMessage());
+        }
+    }
+
     /**
-     * Write out any outstanding data
+     * Write out any outstanding data.
+     * <p>
+     * This creates the backup copy at the same time as writing the database file. This avoids
+     * having to either rename the file later (which may leave a small window for there to
+     * be no file if the system crashes during the write process), or to copy the file when
+     * writing the backup copy (which would require a read and write, and is thus slower).
      */
     public void commitDatabase() {
-        String s = mapper.toJson(map);
+        String json = mapper.toJson(map);
 
         synchronized (map) {
-            // Rename the file for backup
-            File rename = new File(file.getParent() + File.separator + BACKUP_EXTENSION,
-                    System.currentTimeMillis() + SEPARATOR + file.getName());
-            file.renameTo(rename);
+            // Write the database file
+            writeDatabaseFile(file, json);
 
-            try (FileOutputStream outputStream = new FileOutputStream(file, false);) {
-                outputStream.write(s.getBytes());
-                outputStream.close();
-            } catch (Exception e) {
-                logger.error("Error writing JsonDB to {}. Cause {}.", file.getPath(), e.getMessage());
-            }
+            // And also write the backup
+            writeDatabaseFile(new File(file.getParent() + File.separator + BACKUP_EXTENSION,
+                    System.currentTimeMillis() + SEPARATOR + file.getName()), json);
 
             deferredSince = 0;
         }
@@ -284,6 +300,11 @@ public class JsonStorage<T> implements Storage<T> {
             // Delete old backups
             List<Long> fileTimes = new ArrayList<Long>();
             File folder = new File(file.getParent() + File.separator + BACKUP_EXTENSION);
+
+            if (!folder.isDirectory()) {
+                return;
+            }
+
             File[] files = folder.listFiles();
 
             // Get an array of file times from the filename

@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2014-2016 by the respective copyright holders.
+ * Copyright (c) 2014-2017 by the respective copyright holders.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -81,7 +81,7 @@ public abstract class Packet {
     }
 
     public void setOrigin(int origin) {
-        protocol = protocol | (origin << 14);
+        protocol = (protocol & ~(1 << 14)) | (origin << 14);
     }
 
     public boolean getTagged() {
@@ -89,7 +89,7 @@ public abstract class Packet {
     }
 
     public void setTagged(boolean flag) {
-        protocol = protocol | ((flag ? 1 : 0) << 13);
+        protocol = (protocol & ~(1 << 13)) | ((flag ? 1 : 0) << 13);
     }
 
     public boolean getAddressable() {
@@ -97,7 +97,7 @@ public abstract class Packet {
     }
 
     public void setAddressable(boolean flag) {
-        this.protocol = protocol | ((flag ? 1 : 0) << 12);
+        this.protocol = (protocol & ~(1 << 12)) | ((flag ? 1 : 0) << 12);
     }
 
     public int getProtocol() {
@@ -137,7 +137,7 @@ public abstract class Packet {
     }
 
     public void setAckRequired(boolean flag) {
-        this.ackbyte = ackbyte | ((flag ? 1 : 0) << 1);
+        this.ackbyte = (ackbyte & ~(1 << 1)) | ((flag ? 1 : 0) << 1);
     }
 
     public boolean getResponseRequired() {
@@ -145,7 +145,7 @@ public abstract class Packet {
     }
 
     public void setResponseRequired(boolean flag) {
-        this.ackbyte = ackbyte | ((flag ? 1 : 0) << 0);
+        this.ackbyte = (ackbyte & ~(1 << 0)) | ((flag ? 1 : 0) << 0);
     }
 
     public int getSequence() {

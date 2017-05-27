@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2014-2016 by the respective copyright holders.
+ * Copyright (c) 2014-2017 by the respective copyright holders.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -32,7 +32,7 @@ import org.eclipse.smarthome.core.thing.link.ThingLinkManager;
 import org.eclipse.smarthome.core.thing.link.dto.AbstractLinkDTO;
 import org.eclipse.smarthome.core.thing.link.dto.ItemChannelLinkDTO;
 import org.eclipse.smarthome.io.rest.JSONResponse;
-import org.eclipse.smarthome.io.rest.SatisfiableRESTResource;
+import org.eclipse.smarthome.io.rest.RESTResource;
 
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
@@ -46,11 +46,12 @@ import io.swagger.annotations.ApiResponses;
  * @author Dennis Nobel - Initial contribution
  * @author Yordan Zhelev - Added Swagger annotations
  * @author Kai Kreuzer - Removed Thing links and added auto link url
+ * @author Franck Dechavanne - Added DTOs to ApiResponses
  */
 @Path(ItemChannelLinkResource.PATH_LINKS)
 @RolesAllowed({ Role.ADMIN })
 @Api(value = ItemChannelLinkResource.PATH_LINKS)
-public class ItemChannelLinkResource implements SatisfiableRESTResource {
+public class ItemChannelLinkResource implements RESTResource {
 
     /** The URI path to this resource */
     public static final String PATH_LINKS = "links";
@@ -64,7 +65,8 @@ public class ItemChannelLinkResource implements SatisfiableRESTResource {
     @GET
     @Produces(MediaType.APPLICATION_JSON)
     @ApiOperation(value = "Gets all available links.", response = ItemChannelLinkDTO.class, responseContainer = "Collection")
-    @ApiResponses(value = { @ApiResponse(code = 200, message = "OK") })
+    @ApiResponses(value = {
+            @ApiResponse(code = 200, message = "OK", response = ItemChannelLinkDTO.class, responseContainer = "Collection") })
     public Response getAll() {
         Collection<ItemChannelLink> channelLinks = itemChannelLinkRegistry.getAll();
         return Response.ok(toBeans(channelLinks)).build();
@@ -74,7 +76,7 @@ public class ItemChannelLinkResource implements SatisfiableRESTResource {
     @Path("/auto")
     @Produces(MediaType.APPLICATION_JSON)
     @ApiOperation(value = "Tells whether automatic link mode is active or not", response = Boolean.class)
-    @ApiResponses(value = { @ApiResponse(code = 200, message = "OK") })
+    @ApiResponses(value = { @ApiResponse(code = 200, message = "OK", response = Boolean.class) })
     public Response isAutomatic() {
         return Response.ok(thingLinkManager.isAutoLinksEnabled()).build();
     }

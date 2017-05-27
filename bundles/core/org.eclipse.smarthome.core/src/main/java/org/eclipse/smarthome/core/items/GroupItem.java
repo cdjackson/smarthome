@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2014-2016 by the respective copyright holders.
+ * Copyright (c) 2014-2017 by the respective copyright holders.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -13,6 +13,8 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.concurrent.CopyOnWriteArraySet;
+import java.util.function.Predicate;
+import java.util.stream.Collectors;
 
 import org.eclipse.smarthome.core.items.events.ItemEventFactory;
 import org.eclipse.smarthome.core.types.Command;
@@ -35,19 +37,40 @@ public class GroupItem extends GenericItem implements StateChangeListener {
 
     protected GroupFunction function;
 
+    /**
+     * Creates a plain GroupItem
+     *
+     * @param name name of the group
+     */
     public GroupItem(String name) {
-        this(name, null);
+        this(name, null, null);
     }
 
     public GroupItem(String name, GenericItem baseItem) {
+        // only baseItem but no function set -> use Equality
         this(name, baseItem, new GroupFunction.Equality());
     }
 
+    /**
+     * Creates a GroupItem with function
+     *
+     * @param name name of the group
+     * @param baseItem type of items in the group
+     * @param function function to calculate group status out of member status
+     */
     public GroupItem(String name, GenericItem baseItem, GroupFunction function) {
         super(TYPE, name);
+
+        // we only allow GroupItem with BOTH, baseItem AND function set, or NONE of them set
+        if (baseItem == null || function == null) {
+            this.baseItem = null;
+            this.function = null;
+        } else {
+            this.function = function;
+            this.baseItem = baseItem;
+        }
+
         members = new CopyOnWriteArraySet<Item>();
-        this.function = function;
-        this.baseItem = baseItem;
     }
 
     /**
@@ -88,19 +111,30 @@ public class GroupItem extends GenericItem implements StateChangeListener {
      * @return all members of this and all contained {@link GroupItem}s
      */
     public Set<Item> getAllMembers() {
-        Set<Item> allMembers = new HashSet<Item>();
-        collectMembers(allMembers, members);
-        return ImmutableSet.copyOf(allMembers);
+        return ImmutableSet.copyOf(getMembers((Item i) -> !(i instanceof GroupItem)));
     }
 
     private void collectMembers(Set<Item> allMembers, Set<Item> members) {
         for (Item member : members) {
             if (member instanceof GroupItem) {
                 collectMembers(allMembers, ((GroupItem) member).members);
+                allMembers.add(member);
             } else {
                 allMembers.add(member);
             }
         }
+    }
+
+    /**
+     * Retrieves ALL members of this group and filters it with the given Predicate
+     *
+     * @param filterItem Predicate with settings to filter member list
+     * @return Set of member items filtered by filterItem
+     */
+    public Set<Item> getMembers(Predicate<Item> filterItem) {
+        Set<Item> allMembers = new HashSet<Item>();
+        collectMembers(allMembers, members);
+        return allMembers.stream().filter(filterItem).collect(Collectors.toSet());
     }
 
     /**
@@ -218,7 +252,12 @@ public class GroupItem extends GenericItem implements StateChangeListener {
      */
     @Override
     public State getStateAs(Class<? extends State> typeClass) {
-        State newState = function.getStateAs(getAllMembers(), typeClass);
+        // if a group does not have a function it cannot have a state
+        State newState = null;
+        if (function != null) {
+            newState = function.getStateAs(getAllMembers(), typeClass);
+        }
+
         if (newState == null && baseItem != null) {
             // we use the transformation method from the base item
             baseItem.setState(state);
@@ -286,7 +325,9 @@ public class GroupItem extends GenericItem implements StateChangeListener {
     @Override
     public void stateUpdated(Item item, State state) {
         State oldState = this.state;
-        setState(function.calculate(members));
+        if (function != null) {
+            setState(function.calculate(members));
+        }
         if (!oldState.equals(this.state)) {
             sendGroupStateChangedEvent(item.getName(), this.state, oldState);
         }

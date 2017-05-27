@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2014-2016 by the respective copyright holders.
+ * Copyright (c) 2014-2017 by the respective copyright holders.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -26,6 +26,9 @@ import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import org.eclipse.smarthome.model.rule.rules.EventEmittedTrigger
 import org.eclipse.smarthome.core.thing.events.ChannelTriggeredEvent
+import org.eclipse.smarthome.model.script.engine.IThingRegistryProvider
+import org.eclipse.smarthome.model.rule.rules.ThingStateChangedEventTrigger
+import org.eclipse.smarthome.model.rule.rules.ThingStateUpdateEventTrigger
 
 /**
  * <p>Infers a JVM model from the source model.</p> 
@@ -57,6 +60,9 @@ class RulesJvmModelInferrer extends ScriptJvmModelInferrer {
 
     @Inject
     IItemRegistryProvider itemRegistryProvider
+
+    @Inject
+    IThingRegistryProvider thingRegistryProvider
 
     @Inject
     StateAndCommandProvider stateAndCommandProvider
@@ -107,6 +113,19 @@ class RulesJvmModelInferrer extends ScriptJvmModelInferrer {
                 }
             ]
 
+            val thingRegistry = thingRegistryProvider.get
+            val things = thingRegistry?.getAll()
+            things?.forEach [ thing |
+                val name = thing.getUID().toString()
+                if (fieldNames.add(name)) {
+                    members += ruleModel.toField(name, ruleModel.newTypeRef(thing.class)) [
+                        static = true
+                    ]
+                } else {
+                    logger.warn("Duplicate field: '{}'. Ignoring '{}'.", name, thing.class.name)
+                }
+            ]
+
             members += ruleModel.rules.map [ rule |
                 rule.toMethod("_" + rule.name, ruleModel.newTypeRef(Void.TYPE)) [
                     static = true
@@ -121,6 +140,10 @@ class RulesJvmModelInferrer extends ScriptJvmModelInferrer {
                     if (containsEventTrigger(rule)) {
                         val eventTypeRef = ruleModel.newTypeRef(ChannelTriggeredEvent)
                         parameters += rule.toParameter(VAR_RECEIVED_EVENT, eventTypeRef)
+                    }
+                    if (containsThingStateChangedEventTrigger(rule)) {
+                        val stateTypeRef = ruleModel.newTypeRef(State)
+                        parameters += rule.toParameter(VAR_PREVIOUS_STATE, stateTypeRef)
                     }
 
                     body = rule.script
@@ -150,6 +173,15 @@ class RulesJvmModelInferrer extends ScriptJvmModelInferrer {
     def private boolean containsEventTrigger(Rule rule) {
         for (EventTrigger trigger : rule.getEventtrigger()) {
             if (trigger instanceof EventEmittedTrigger) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    def private boolean containsThingStateChangedEventTrigger(Rule rule) {
+        for (EventTrigger trigger : rule.getEventtrigger()) {
+            if (trigger instanceof ThingStateChangedEventTrigger) {
                 return true;
             }
         }

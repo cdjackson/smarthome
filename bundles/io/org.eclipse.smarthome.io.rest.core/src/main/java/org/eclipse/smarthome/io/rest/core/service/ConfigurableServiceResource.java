@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2014-2016 by the respective copyright holders.
+ * Copyright (c) 2014-2017 by the respective copyright holders.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -33,7 +33,7 @@ import org.eclipse.smarthome.config.core.ConfigUtil;
 import org.eclipse.smarthome.config.core.ConfigurableService;
 import org.eclipse.smarthome.config.core.Configuration;
 import org.eclipse.smarthome.core.auth.Role;
-import org.eclipse.smarthome.io.rest.SatisfiableRESTResource;
+import org.eclipse.smarthome.io.rest.RESTResource;
 import org.eclipse.smarthome.io.rest.core.config.ConfigurationService;
 import org.eclipse.smarthome.io.rest.core.internal.RESTCoreActivator;
 import org.osgi.framework.Constants;
@@ -54,12 +54,13 @@ import io.swagger.annotations.ApiResponses;
  * allows to get, update and delete the configuration for a service ID. See also {@link ConfigurableService}.
  *
  * @author Dennis Nobel - Initial contribution
+ * @author Franck Dechavanne - Added DTOs to ApiResponses
  *
  */
 @Path(ConfigurableServiceResource.PATH_SERVICES)
 @RolesAllowed({ Role.ADMIN })
 @Api(value = ConfigurableServiceResource.PATH_SERVICES)
-public class ConfigurableServiceResource implements SatisfiableRESTResource {
+public class ConfigurableServiceResource implements RESTResource {
 
     /** The URI path to this resource */
     public static final String PATH_SERVICES = "services";
@@ -75,7 +76,8 @@ public class ConfigurableServiceResource implements SatisfiableRESTResource {
     @GET
     @Produces({ MediaType.APPLICATION_JSON })
     @ApiOperation(value = "Get all configurable services.")
-    @ApiResponses(value = { @ApiResponse(code = 200, message = "OK") })
+    @ApiResponses(value = {
+            @ApiResponse(code = 200, message = "OK", response = ConfigurableServiceDTO.class, responseContainer = "List") })
     public List<ConfigurableServiceDTO> getAll() {
         List<ConfigurableServiceDTO> services = getConfigurableServices();
         return services;
@@ -85,7 +87,8 @@ public class ConfigurableServiceResource implements SatisfiableRESTResource {
     @Path("/{serviceId}")
     @Produces({ MediaType.APPLICATION_JSON })
     @ApiOperation(value = "Get configurable service for given service ID.")
-    @ApiResponses(value = { @ApiResponse(code = 200, message = "OK"), @ApiResponse(code = 404, message = "Not found") })
+    @ApiResponses(value = { @ApiResponse(code = 200, message = "OK", response = ConfigurableServiceDTO.class),
+            @ApiResponse(code = 404, message = "Not found") })
     public Response getById(@PathParam("serviceId") @ApiParam(value = "service ID", required = true) String serviceId) {
         ConfigurableServiceDTO configurableService = getServiceById(serviceId);
         if (configurableService != null) {
@@ -109,7 +112,7 @@ public class ConfigurableServiceResource implements SatisfiableRESTResource {
     @Path("/{serviceId}/config")
     @Produces({ MediaType.APPLICATION_JSON })
     @ApiOperation(value = "Get service configuration for given service ID.")
-    @ApiResponses(value = { @ApiResponse(code = 200, message = "OK"),
+    @ApiResponses(value = { @ApiResponse(code = 200, message = "OK", response = String.class),
             @ApiResponse(code = 500, message = "Configuration can not be read due to internal error") })
     public Response getConfiguration(
             @PathParam("serviceId") @ApiParam(value = "service ID", required = true) String serviceId) {
@@ -128,7 +131,7 @@ public class ConfigurableServiceResource implements SatisfiableRESTResource {
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces({ MediaType.APPLICATION_JSON })
     @ApiOperation(value = "Updates a service configuration for given service ID and returns the old configuration.")
-    @ApiResponses(value = { @ApiResponse(code = 200, message = "OK"),
+    @ApiResponses(value = { @ApiResponse(code = 200, message = "OK", response = String.class),
             @ApiResponse(code = 204, message = "No old configuration"),
             @ApiResponse(code = 500, message = "Configuration can not be updated due to internal error") })
     public Response updateConfiguration(
@@ -175,7 +178,7 @@ public class ConfigurableServiceResource implements SatisfiableRESTResource {
     @Path("/{serviceId}/config")
     @Produces({ MediaType.APPLICATION_JSON })
     @ApiOperation(value = "Deletes a service configuration for given service ID and returns the old configuration.")
-    @ApiResponses(value = { @ApiResponse(code = 200, message = "OK"),
+    @ApiResponses(value = { @ApiResponse(code = 200, message = "OK", response = String.class),
             @ApiResponse(code = 204, message = "No old configuration"),
             @ApiResponse(code = 500, message = "Configuration can not be deleted due to internal error") })
     public Response deleteConfiguration(

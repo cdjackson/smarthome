@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2014-2016 by the respective copyright holders.
+ * Copyright (c) 2014-2017 by the respective copyright holders.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -68,20 +68,20 @@ public class LinkConsoleCommandExtension extends AbstractConsoleCommandExtension
                     clear(console);
                     return;
                 default:
+                    console.println("Unknown command '" + subCommand + "'");
+                    printUsage(console);
                     break;
             }
         } else {
-            list(console, itemChannelLinkRegistry.getAll());
+            printUsage(console);
         }
     }
 
     @Override
     public List<String> getUsages() {
-        return Arrays
-                .asList(new String[] { buildCommandUsage(SUBCMD_LIST, "lists all links"),
-                        buildCommandUsage(SUBCMD_CL_ADD + " <itemName> <channelUID>", "links an item with a channel"),
-                        buildCommandUsage(SUBCMD_CL_REMOVE + " <itemName> <thingUID>",
-                                "unlinks an item with a channel"),
+        return Arrays.asList(new String[] { buildCommandUsage(SUBCMD_LIST, "lists all links"),
+                buildCommandUsage(SUBCMD_CL_ADD + " <itemName> <channelUID>", "links an item with a channel"),
+                buildCommandUsage(SUBCMD_CL_REMOVE + " <itemName> <thingUID>", "unlinks an item with a channel"),
                 buildCommandUsage(SUBCMD_CLEAR, "removes all managed links") });
     }
 

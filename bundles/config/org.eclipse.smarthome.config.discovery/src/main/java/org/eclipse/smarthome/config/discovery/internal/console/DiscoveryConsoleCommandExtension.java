@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2014-2016 by the respective copyright holders.
+ * Copyright (c) 2014-2017 by the respective copyright holders.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -102,7 +102,7 @@ public class DiscoveryConsoleCommandExtension extends AbstractConsoleCommandExte
             console.println("Background discovery for discovery service '" + discoveryServicePID + "' was set to "
                     + enabled + ".");
         } catch (IOException ex) {
-            String errorText = "Error occured while trying to configure background discovery with PID '"
+            String errorText = "Error occurred while trying to configure background discovery with PID '"
                     + discoveryServicePID + "': " + ex.getMessage();
             logger.error(errorText, ex);
             console.println(errorText);

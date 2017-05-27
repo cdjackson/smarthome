@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2014-2016 by the respective copyright holders.
+ * Copyright (c) 2014-2017 by the respective copyright holders.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -8,6 +8,7 @@
 package org.eclipse.smarthome.ui.items;
 
 import org.eclipse.emf.common.util.EList;
+import org.eclipse.emf.ecore.EObject;
 import org.eclipse.smarthome.core.items.ItemRegistry;
 import org.eclipse.smarthome.core.types.State;
 import org.eclipse.smarthome.model.sitemap.LinkableWidget;
@@ -91,6 +92,16 @@ public interface ItemUIRegistry extends ItemRegistry, ItemUIProvider {
     public String getWidgetId(Widget w);
 
     /**
+     * this should be used instead of Sitemap.getChildren() as the default
+     * widgets have to be resolved to a concrete widget type.
+     *
+     * @param w
+     *            the sitemap to retrieve the children for
+     * @return the children of the sitemap
+     */
+    public EList<Widget> getChildren(Sitemap sitemap);
+
+    /**
      * this should be used instead of LinkableWidget.getChildren() as there
      * might be no children defined on the widget, but they should be
      * dynamically determined by looking at the members of the underlying item.
@@ -100,6 +111,16 @@ public interface ItemUIRegistry extends ItemRegistry, ItemUIProvider {
      * @return the (dynamically or statically defined) children of the widget
      */
     public EList<Widget> getChildren(LinkableWidget w);
+
+    /**
+     * this should be used instead of Widget.eContainer() as as the concrete
+     * widgets created from default widgets have no parent.
+     *
+     * @param w
+     *            the widget to retrieve the parent for
+     * @return the parent of the widget
+     */
+    public EObject getParent(Widget w);
 
     /**
      * Gets the label color for the widget. Checks conditional statements to

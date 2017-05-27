@@ -365,6 +365,12 @@
 			padding: 0 5px 0 5px;
 			font-weight: normal;
 		}
+		&--text-link {
+			font-weight: normal;
+		}
+		&--switch, &--slider {
+			padding: 0 10px 0 10px;
+		}
 	}
 	&__text {
 		overflow: hidden;
@@ -672,3 +678,45 @@ html.flexbox-legacy {
 		}
 	}
 }
+
+.mdl-notify {
+	border-radius: 2px 2px 0 0;
+	background: #323232;
+
+	@media screen and (max-width: @layout-mobile-size-threshold) {
+		border-radius: 0;
+		width: 100%;
+	}
+
+	&__text {
+		padding: 14px 24px;
+		vertical-align: middle;
+		color: white;
+		font-weight: 400;
+	}
+
+	&__container {
+		position: absolute;
+		bottom: 0;
+		left: 0;
+		right: 0;
+		z-index: 1;
+
+		.flex-display();
+		.justify-content(center);
+	}
+
+	&--hidden {
+		display: none;
+	}
+}
+
+// MS Edge hacks
+@supports (-ms-ime-align:auto) {
+	.mdl-slider.mdl-slider.is-upgraded {
+		-ms-appearance: none;
+		height: 32px;
+ 		margin: 0;
+	}
+}
+

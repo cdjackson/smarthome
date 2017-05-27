@@ -79,6 +79,14 @@ angular.module('PaperUI', [ 'PaperUI.controllers', 'PaperUI.controllers.control'
         templateUrl : 'partials/rules.html',
         controller : 'RulesPageController',
         title : 'Rules'
+    }).when('/rules/catalog', {
+        templateUrl : 'partials/rules.html',
+        controller : 'ExtensionPageController',
+        title : 'Rules'
+    }).when('/rules/template/:templateUID', {
+        templateUrl : 'partials/rules.html',
+        controller : 'RuleTemplateController',
+        title : 'Rules'
     }).when('/rules/configure/:ruleUID', {
         templateUrl : 'partials/rules.html',
         controller : 'RulesPageController',
@@ -296,6 +304,38 @@ angular.module('PaperUI', [ 'PaperUI.controllers', 'PaperUI.controllers.control'
                     });
                 }
                 longClicked = false;
+            });
+        }
+    };
+}).directive('verticalAlign', function() {
+    return {
+        restrict : 'A',
+        link : function(scope, element, attrs) {
+            element[0].addEventListener("load", function() {
+                calculateMargin();
+            });
+            function calculateMargin() {
+                var diff = 56 - element[0].clientHeight;
+                if (diff > 0) {
+                    element[0].style.cssText = 'margin-top:' + Math.floor(diff / 2) + 'px';
+                }
+            }
+        }
+    };
+}).directive('overflown', function() {
+    return {
+        restrict : 'A',
+        link : function(scope, element, attrs) {
+            setTimeout(function() {
+                if (element.innerWidth() < element[0].children[0].scrollWidth) {
+                    $(element[0].children[0]).addClass('reducedWidth');
+                } else {
+                    $(element[0].children[1]).addClass('hidden');
+                }
+            });
+            element[0].children[1].addEventListener('click', function(event) {
+                element.toggleClass('nowrap');
+                element[0].children[1].innerText = event.target.innerText == "more" ? "less" : "more";
             });
         }
     };

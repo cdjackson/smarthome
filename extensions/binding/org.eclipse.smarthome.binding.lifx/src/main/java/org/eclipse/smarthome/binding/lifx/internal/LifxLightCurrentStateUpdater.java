@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2014-2016 by the respective copyright holders.
+ * Copyright (c) 2014-2017 by the respective copyright holders.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -7,30 +7,31 @@
  */
 package org.eclipse.smarthome.binding.lifx.internal;
 
-import static org.eclipse.smarthome.binding.lifx.LifxBindingConstants.THING_TYPE_COLORIRLIGHT;
-import static org.eclipse.smarthome.binding.lifx.internal.LifxUtils.*;
+import static org.eclipse.smarthome.binding.lifx.LifxBindingConstants.MIN_ZONE_INDEX;
+import static org.eclipse.smarthome.binding.lifx.internal.LifxUtils.infraredToPercentType;
 
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.ReentrantLock;
 
-import org.eclipse.smarthome.binding.lifx.LifxBindingConstants;
 import org.eclipse.smarthome.binding.lifx.handler.LifxLightHandler.CurrentLightState;
+import org.eclipse.smarthome.binding.lifx.internal.fields.HSBK;
 import org.eclipse.smarthome.binding.lifx.internal.fields.MACAddress;
 import org.eclipse.smarthome.binding.lifx.internal.listener.LifxResponsePacketListener;
+import org.eclipse.smarthome.binding.lifx.internal.protocol.GetColorZonesRequest;
 import org.eclipse.smarthome.binding.lifx.internal.protocol.GetLightInfraredRequest;
 import org.eclipse.smarthome.binding.lifx.internal.protocol.GetRequest;
+import org.eclipse.smarthome.binding.lifx.internal.protocol.GetWifiInfoRequest;
 import org.eclipse.smarthome.binding.lifx.internal.protocol.Packet;
+import org.eclipse.smarthome.binding.lifx.internal.protocol.Products;
 import org.eclipse.smarthome.binding.lifx.internal.protocol.StateLightInfraredResponse;
 import org.eclipse.smarthome.binding.lifx.internal.protocol.StateLightPowerResponse;
+import org.eclipse.smarthome.binding.lifx.internal.protocol.StateMultiZoneResponse;
 import org.eclipse.smarthome.binding.lifx.internal.protocol.StatePowerResponse;
 import org.eclipse.smarthome.binding.lifx.internal.protocol.StateResponse;
-import org.eclipse.smarthome.core.common.ThreadPoolManager;
-import org.eclipse.smarthome.core.library.types.DecimalType;
-import org.eclipse.smarthome.core.library.types.HSBType;
+import org.eclipse.smarthome.binding.lifx.internal.protocol.StateWifiInfoResponse;
 import org.eclipse.smarthome.core.library.types.PercentType;
-import org.eclipse.smarthome.core.thing.ThingTypeUID;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -47,16 +48,15 @@ public class LifxLightCurrentStateUpdater implements LifxResponsePacketListener 
     private final Logger logger = LoggerFactory.getLogger(LifxLightCurrentStateUpdater.class);
 
     private final String macAsHex;
+    private final ScheduledExecutorService scheduler;
     private final CurrentLightState currentLightState;
     private final LifxLightCommunicationHandler communicationHandler;
-    private final ThingTypeUID thingTypeUID;
+    private final Products product;
 
     private final ReentrantLock lock = new ReentrantLock();
 
-    private ScheduledExecutorService scheduler = ThreadPoolManager
-            .getScheduledPool(LifxBindingConstants.THREADPOOL_NAME);
-
     private boolean wasOnline;
+    private boolean updateSignalStrength;
 
     private ScheduledFuture<?> statePollingJob;
 
@@ -74,19 +74,24 @@ public class LifxLightCurrentStateUpdater implements LifxResponsePacketListener 
                 }
                 wasOnline = currentLightState.isOnline();
             } catch (Exception e) {
-                logger.error("Error occured while polling light state", e);
+                logger.error("Error occurred while polling light state", e);
             } finally {
                 lock.unlock();
             }
         }
     };
 
-    public LifxLightCurrentStateUpdater(MACAddress macAddress, CurrentLightState currentLightState,
-            LifxLightCommunicationHandler communicationHandler, ThingTypeUID thingTypeUID) {
+    public LifxLightCurrentStateUpdater(MACAddress macAddress, ScheduledExecutorService scheduler,
+            CurrentLightState currentLightState, LifxLightCommunicationHandler communicationHandler, Products product) {
         this.macAsHex = macAddress.getHex();
         this.currentLightState = currentLightState;
+        this.scheduler = scheduler;
         this.communicationHandler = communicationHandler;
-        this.thingTypeUID = thingTypeUID;
+        this.product = product;
+    }
+
+    public void setUpdateSignalStrength(boolean updateSignalStrength) {
+        this.updateSignalStrength = updateSignalStrength;
     }
 
     public void start() {
@@ -98,7 +103,7 @@ public class LifxLightCurrentStateUpdater implements LifxResponsePacketListener 
                         TimeUnit.SECONDS);
             }
         } catch (Exception e) {
-            logger.error("Error occured while starting light state updater", e);
+            logger.error("Error occurred while starting light state updater", e);
         } finally {
             lock.unlock();
         }
@@ -113,7 +118,7 @@ public class LifxLightCurrentStateUpdater implements LifxResponsePacketListener 
                 statePollingJob = null;
             }
         } catch (Exception e) {
-            logger.error("Error occured while stopping light state updater", e);
+            logger.error("Error occurred while stopping light state updater", e);
         } finally {
             lock.unlock();
         }
@@ -123,57 +128,83 @@ public class LifxLightCurrentStateUpdater implements LifxResponsePacketListener 
         GetRequest statePacket = new GetRequest();
         communicationHandler.sendPacket(statePacket);
 
-        if (thingTypeUID.equals(THING_TYPE_COLORIRLIGHT)) {
+        if (product.isInfrared()) {
             GetLightInfraredRequest infraredPacket = new GetLightInfraredRequest();
             communicationHandler.sendPacket(infraredPacket);
+        }
+        if (product.isMultiZone()) {
+            GetColorZonesRequest colorZonesPacket = new GetColorZonesRequest();
+            communicationHandler.sendPacket(colorZonesPacket);
+        }
+        if (updateSignalStrength) {
+            GetWifiInfoRequest wifiInfoPacket = new GetWifiInfoRequest();
+            communicationHandler.sendPacket(wifiInfoPacket);
         }
     }
 
     @Override
     public void handleResponsePacket(Packet packet) {
-        if (packet instanceof StateResponse) {
-            handleLightStatus((StateResponse) packet);
-        } else if (packet instanceof StatePowerResponse) {
-            handlePowerStatus((StatePowerResponse) packet);
-        } else if (packet instanceof StateLightPowerResponse) {
-            handleLightPowerStatus((StateLightPowerResponse) packet);
-        } else if (packet instanceof StateLightInfraredResponse) {
-            handleInfraredStatus((StateLightInfraredResponse) packet);
-        }
+        try {
+            lock.lock();
 
-        if (currentLightState.isOnline() && !wasOnline) {
-            wasOnline = true;
-            logger.trace("{} : The light just went online, immediately polling the state of the light", macAsHex);
-            sendLightStateRequests();
+            if (packet instanceof StateResponse) {
+                handleLightStatus((StateResponse) packet);
+            } else if (packet instanceof StatePowerResponse) {
+                handlePowerStatus((StatePowerResponse) packet);
+            } else if (packet instanceof StateLightPowerResponse) {
+                handleLightPowerStatus((StateLightPowerResponse) packet);
+            } else if (packet instanceof StateLightInfraredResponse) {
+                handleInfraredStatus((StateLightInfraredResponse) packet);
+            } else if (packet instanceof StateMultiZoneResponse) {
+                handleMultiZoneStatus((StateMultiZoneResponse) packet);
+            } else if (packet instanceof StateWifiInfoResponse) {
+                handleWifiInfoStatus((StateWifiInfoResponse) packet);
+            }
+
+            currentLightState.setOnline();
+
+            if (currentLightState.isOnline() && !wasOnline) {
+                wasOnline = true;
+                logger.trace("{} : The light just went online, immediately polling the state of the light", macAsHex);
+                sendLightStateRequests();
+            }
+        } finally {
+            lock.unlock();
         }
     }
 
     private void handleLightStatus(StateResponse packet) {
-        DecimalType hue = hueToDecimalType(packet.getHue());
-        PercentType saturation = saturationToPercentType(packet.getSaturation());
-        PercentType brightness = brightnessToPercentType(packet.getBrightness());
-        PercentType temperature = kelvinToPercentType(packet.getKelvin());
-
-        currentLightState.setHSB(new HSBType(hue, saturation, brightness));
-        currentLightState.setTemperature(temperature);
+        currentLightState.setColor(packet.getColor(), MIN_ZONE_INDEX);
         currentLightState.setPowerState(packet.getPower());
-        currentLightState.setOnline();
     }
 
     private void handlePowerStatus(StatePowerResponse packet) {
         currentLightState.setPowerState(packet.getState());
-        currentLightState.setOnline();
     }
 
     private void handleLightPowerStatus(StateLightPowerResponse packet) {
         currentLightState.setPowerState(packet.getState());
-        currentLightState.setOnline();
     }
 
     private void handleInfraredStatus(StateLightInfraredResponse packet) {
         PercentType infrared = infraredToPercentType(packet.getInfrared());
         currentLightState.setInfrared(infrared);
-        currentLightState.setOnline();
+    }
+
+    private void handleMultiZoneStatus(StateMultiZoneResponse packet) {
+        HSBK[] colors = currentLightState.getColors();
+        if (colors == null || colors.length != packet.getCount()) {
+            colors = new HSBK[packet.getCount()];
+        }
+        for (int i = 0; i < packet.getColors().length && packet.getIndex() + i < colors.length; i++) {
+            colors[packet.getIndex() + i] = packet.getColors()[i];
+        }
+
+        currentLightState.setColors(colors);
+    }
+
+    private void handleWifiInfoStatus(StateWifiInfoResponse packet) {
+        currentLightState.setSignalStrength(packet.getSignalStrength());
     }
 
 }

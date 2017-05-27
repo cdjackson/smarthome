@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2014-2016 by the respective copyright holders.
+ * Copyright (c) 2014-2017 by the respective copyright holders.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -133,13 +133,13 @@ public class WebAppServlet extends BaseServlet {
             if (widgetId == null || widgetId.isEmpty() || widgetId.equals("Home")) {
                 // we are at the homepage, so we render the children of the sitemap root node
                 String label = sitemap.getLabel() != null ? sitemap.getLabel() : sitemapName;
-                EList<Widget> children = sitemap.getChildren();
+                EList<Widget> children = renderer.getItemUIRegistry().getChildren(sitemap);
                 if (poll && waitForChanges(children) == false) {
                     // we have reached the timeout, so we do not return any content as nothing has changed
                     res.getWriter().append(getTimeoutResponse()).close();
                     return;
                 }
-                result.append(renderer.processPage("Home", sitemapName, label, sitemap.getChildren(), async));
+                result.append(renderer.processPage("Home", sitemapName, label, children, async));
             } else if (!widgetId.equals("Colorpicker")) {
                 // we are on some subpage, so we have to render the children of the widget that has been selected
                 Widget w = renderer.getItemUIRegistry().getWidget(sitemap, widgetId);

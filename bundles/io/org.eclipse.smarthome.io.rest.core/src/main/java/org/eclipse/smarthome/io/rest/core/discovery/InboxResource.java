@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2014-2016 by the respective copyright holders.
+ * Copyright (c) 2014-2017 by the respective copyright holders.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -36,7 +36,7 @@ import org.eclipse.smarthome.core.auth.Role;
 import org.eclipse.smarthome.core.thing.Thing;
 import org.eclipse.smarthome.core.thing.ThingUID;
 import org.eclipse.smarthome.io.rest.JSONResponse;
-import org.eclipse.smarthome.io.rest.SatisfiableRESTResource;
+import org.eclipse.smarthome.io.rest.RESTResource;
 
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
@@ -52,11 +52,12 @@ import io.swagger.annotations.ApiResponses;
  * @author Kai Kreuzer - refactored for using the OSGi JAX-RS connector and removed ThingSetupManager
  * @author Yordan Zhelev - Added Swagger annotations
  * @author Chris Jackson - Updated to use JSONResponse. Fixed null response from approve.
+ * @author Franck Dechavanne - Added DTOs to ApiResponses
  */
 @Path(InboxResource.PATH_INBOX)
 @RolesAllowed({ Role.ADMIN })
 @Api(value = InboxResource.PATH_INBOX)
-public class InboxResource implements SatisfiableRESTResource {
+public class InboxResource implements RESTResource {
 
     /** The URI path to this resource */
     public static final String PATH_INBOX = "inbox";
@@ -117,7 +118,7 @@ public class InboxResource implements SatisfiableRESTResource {
     @GET
     @Produces({ MediaType.WILDCARD })
     @ApiOperation(value = "Get all discovered things.")
-    @ApiResponses(value = { @ApiResponse(code = 200, message = "OK") })
+    @ApiResponses(value = { @ApiResponse(code = 200, message = "OK", response = DiscoveryResultDTO.class) })
     public Response getAll() {
         List<DiscoveryResult> discoveryResults = inbox.getAll();
         Set<DiscoveryResultDTO> discoveryResultBeans = convertToListBean(discoveryResults);

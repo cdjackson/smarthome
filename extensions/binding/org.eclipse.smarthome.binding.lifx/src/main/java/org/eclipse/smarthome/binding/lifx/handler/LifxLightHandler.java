@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2014-2016 by the respective copyright holders.
+ * Copyright (c) 2014-2017 by the respective copyright holders.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -8,23 +8,36 @@
 package org.eclipse.smarthome.binding.lifx.handler;
 
 import static org.eclipse.smarthome.binding.lifx.LifxBindingConstants.*;
-import static org.eclipse.smarthome.binding.lifx.internal.LifxUtils.*;
+import static org.eclipse.smarthome.binding.lifx.internal.LifxUtils.increaseDecreasePercentType;
 
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.concurrent.locks.ReentrantLock;
 
 import org.eclipse.smarthome.binding.lifx.LifxBindingConstants;
+import org.eclipse.smarthome.binding.lifx.internal.LifxChannelFactory;
 import org.eclipse.smarthome.binding.lifx.internal.LifxLightCommunicationHandler;
 import org.eclipse.smarthome.binding.lifx.internal.LifxLightCurrentStateUpdater;
 import org.eclipse.smarthome.binding.lifx.internal.LifxLightOnlineStateUpdater;
+import org.eclipse.smarthome.binding.lifx.internal.LifxLightPropertiesUpdater;
 import org.eclipse.smarthome.binding.lifx.internal.LifxLightState;
 import org.eclipse.smarthome.binding.lifx.internal.LifxLightStateChanger;
+import org.eclipse.smarthome.binding.lifx.internal.fields.HSBK;
 import org.eclipse.smarthome.binding.lifx.internal.fields.MACAddress;
+import org.eclipse.smarthome.binding.lifx.internal.listener.LifxPropertiesUpdateListener;
 import org.eclipse.smarthome.binding.lifx.internal.protocol.GetLightInfraredRequest;
 import org.eclipse.smarthome.binding.lifx.internal.protocol.GetLightPowerRequest;
 import org.eclipse.smarthome.binding.lifx.internal.protocol.GetRequest;
+import org.eclipse.smarthome.binding.lifx.internal.protocol.GetWifiInfoRequest;
 import org.eclipse.smarthome.binding.lifx.internal.protocol.Packet;
 import org.eclipse.smarthome.binding.lifx.internal.protocol.PowerState;
+import org.eclipse.smarthome.binding.lifx.internal.protocol.Products;
+import org.eclipse.smarthome.binding.lifx.internal.protocol.SignalStrength;
 import org.eclipse.smarthome.config.core.Configuration;
+import org.eclipse.smarthome.core.library.types.DecimalType;
 import org.eclipse.smarthome.core.library.types.HSBType;
 import org.eclipse.smarthome.core.library.types.IncreaseDecreaseType;
 import org.eclipse.smarthome.core.library.types.OnOffType;
@@ -34,10 +47,10 @@ import org.eclipse.smarthome.core.thing.ChannelUID;
 import org.eclipse.smarthome.core.thing.Thing;
 import org.eclipse.smarthome.core.thing.ThingStatus;
 import org.eclipse.smarthome.core.thing.ThingStatusDetail;
-import org.eclipse.smarthome.core.thing.ThingTypeUID;
 import org.eclipse.smarthome.core.thing.binding.BaseThingHandler;
 import org.eclipse.smarthome.core.types.Command;
 import org.eclipse.smarthome.core.types.RefreshType;
+import org.eclipse.smarthome.core.types.State;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -51,21 +64,25 @@ import org.slf4j.LoggerFactory;
  * @author Kai Kreuzer - Added configurable transition time and small fixes
  * @author Wouter Born - Decomposed class into separate objects
  */
-public class LifxLightHandler extends BaseThingHandler {
+public class LifxLightHandler extends BaseThingHandler implements LifxPropertiesUpdateListener {
 
-    private Logger logger = LoggerFactory.getLogger(LifxLightHandler.class);
+    private final Logger logger = LoggerFactory.getLogger(LifxLightHandler.class);
 
     private static final long FADE_TIME_DEFAULT = 300;
     private static final int MAX_STATE_CHANGE_DURATION = 4000;
 
+    private final LifxChannelFactory channelFactory;
+    private Products product;
+
     private long fadeTime = FADE_TIME_DEFAULT;
     private PercentType powerOnBrightness;
 
-    private MACAddress macAddress = null;
+    private MACAddress macAddress;
     private String macAsHex;
 
-    private ReentrantLock lock = new ReentrantLock();
+    private final ReentrantLock lock = new ReentrantLock();
 
+    private Map<String, State> channelStates;
     private CurrentLightState currentLightState;
     private LifxLightState pendingLightState;
 
@@ -73,6 +90,7 @@ public class LifxLightHandler extends BaseThingHandler {
     private LifxLightCurrentStateUpdater currentStateUpdater;
     private LifxLightStateChanger lightStateChanger;
     private LifxLightOnlineStateUpdater onlineStateUpdater;
+    private LifxLightPropertiesUpdater propertiesUpdater;
 
     public class CurrentLightState extends LifxLightState {
 
@@ -97,58 +115,87 @@ public class LifxLightHandler extends BaseThingHandler {
         }
 
         @Override
-        public void setHSB(HSBType hsb) {
-            if (!isStateChangePending() || (hsb.equals(pendingLightState.getHSB())
-                    && pendingLightState.getPowerState().equals(getPowerState()))) {
-                if (getPowerState() == PowerState.OFF) {
-                    updateState(CHANNEL_COLOR, new HSBType(hsb.getHue(), hsb.getSaturation(), PercentType.ZERO));
-                    updateState(CHANNEL_BRIGHTNESS, PercentType.ZERO);
-                } else if (hsb != null) {
-                    updateState(CHANNEL_COLOR, hsb);
-                    updateState(CHANNEL_BRIGHTNESS, hsb.getBrightness());
-                }
+        public void setColors(HSBK[] colors) {
+            if (!isStateChangePending() || isPendingColorStateChangesApplied(getPowerState(), colors)) {
+                PowerState powerState = isStateChangePending() ? pendingLightState.getPowerState() : getPowerState();
+                updateColorChannels(powerState, colors);
             }
-            super.setHSB(hsb);
+            super.setColors(colors);
         }
 
         @Override
         public void setPowerState(PowerState powerState) {
-            if (!isStateChangePending() || (powerState.equals(pendingLightState.getPowerState())
-                    && pendingLightState.getHSB().equals(getHSB()))) {
-                HSBType hsb = isStateChangePending() ? pendingLightState.getHSB() : getHSB();
-                if (powerState == PowerState.OFF) {
-                    updateState(CHANNEL_COLOR, new HSBType(hsb.getHue(), hsb.getSaturation(), PercentType.ZERO));
-                    updateState(CHANNEL_BRIGHTNESS, PercentType.ZERO);
-                } else if (hsb != null) {
-                    updateState(CHANNEL_COLOR, hsb);
-                    updateState(CHANNEL_BRIGHTNESS, hsb.getBrightness());
-                } else {
-                    updateState(CHANNEL_COLOR, LifxBindingConstants.DEFAULT_COLOR);
-                    updateState(CHANNEL_BRIGHTNESS, LifxBindingConstants.DEFAULT_BRIGHTNESS);
-                }
+            if (!isStateChangePending() || isPendingColorStateChangesApplied(powerState, getColors())) {
+                HSBK[] colors = isStateChangePending() ? pendingLightState.getColors() : getColors();
+                updateColorChannels(powerState, colors);
             }
             super.setPowerState(powerState);
         }
 
-        @Override
-        public void setTemperature(PercentType temperature) {
-            if (!isStateChangePending() || temperature.equals(pendingLightState.getTemperature())) {
-                updateState(CHANNEL_TEMPERATURE, temperature);
+        private boolean isPendingColorStateChangesApplied(PowerState powerState, HSBK[] colors) {
+            return powerState != null && powerState.equals(pendingLightState.getPowerState())
+                    && Arrays.equals(colors, pendingLightState.getColors());
+        }
+
+        private void updateColorChannels(PowerState powerState, HSBK[] colors) {
+            HSBK color = colors != null && colors.length > 0 ? colors[0] : null;
+            HSBK updateColor = nullSafeUpdateColor(powerState, color);
+            HSBType hsb = updateColor.getHSB();
+
+            updateStateIfChanged(CHANNEL_COLOR, hsb);
+            updateStateIfChanged(CHANNEL_BRIGHTNESS, hsb.getBrightness());
+            updateStateIfChanged(CHANNEL_TEMPERATURE, updateColor.getTemperature());
+
+            updateZoneChannels(powerState, colors);
+        }
+
+        private HSBK nullSafeUpdateColor(PowerState powerState, HSBK color) {
+            HSBK updateColor = color != null ? color : DEFAULT_COLOR;
+            if (powerState == PowerState.OFF) {
+                updateColor = new HSBK(updateColor);
+                updateColor.setBrightness(PercentType.ZERO);
             }
-            super.setTemperature(temperature);
+            return updateColor;
         }
 
         @Override
         public void setInfrared(PercentType infrared) {
             if (!isStateChangePending() || infrared.equals(pendingLightState.getInfrared())) {
-                updateState(CHANNEL_INFRARED, infrared);
+                updateStateIfChanged(CHANNEL_INFRARED, infrared);
             }
             super.setInfrared(infrared);
         }
+
+        @Override
+        public void setSignalStrength(SignalStrength signalStrength) {
+            updateStateIfChanged(CHANNEL_SIGNAL_STRENGTH, new DecimalType(signalStrength.toQualityRating()));
+            super.setSignalStrength(signalStrength);
+        }
+
+        private void updateZoneChannels(PowerState powerState, HSBK[] colors) {
+            if (!product.isMultiZone() || colors == null || colors.length == 0) {
+                return;
+            }
+
+            int oldZones = getColors() != null ? getColors().length : 0;
+            int newZones = colors.length;
+            if (oldZones != newZones) {
+                addRemoveZoneChannels(newZones);
+            }
+
+            for (int i = 0; i < colors.length; i++) {
+                HSBK color = colors[i];
+                HSBK updateColor = nullSafeUpdateColor(powerState, color);
+                updateStateIfChanged(CHANNEL_COLOR_ZONE + i, updateColor.getHSB());
+                updateStateIfChanged(CHANNEL_TEMPERATURE_ZONE + i, updateColor.getTemperature());
+            }
+        }
+
     }
 
-    public LifxLightHandler(Thing thing) {
+    public LifxLightHandler(Thing thing, LifxChannelFactory channelFactory) {
         super(thing);
+        this.channelFactory = channelFactory;
     }
 
     @Override
@@ -156,6 +203,7 @@ public class LifxLightHandler extends BaseThingHandler {
         try {
             lock.lock();
 
+            product = getProduct();
             macAddress = new MACAddress((String) getConfig().get(LifxBindingConstants.CONFIG_PROPERTY_DEVICE_ID), true);
             macAsHex = this.macAddress.getHex();
 
@@ -164,22 +212,29 @@ public class LifxLightHandler extends BaseThingHandler {
             fadeTime = getFadeTime();
             powerOnBrightness = getPowerOnBrightness();
 
+            channelStates = new HashMap<>();
             currentLightState = new CurrentLightState();
             pendingLightState = new LifxLightState();
 
-            communicationHandler = new LifxLightCommunicationHandler(macAddress, currentLightState);
-            currentStateUpdater = new LifxLightCurrentStateUpdater(macAddress, currentLightState, communicationHandler,
-                    getThing().getThingTypeUID());
-            onlineStateUpdater = new LifxLightOnlineStateUpdater(macAddress, currentLightState, communicationHandler);
-            lightStateChanger = new LifxLightStateChanger(macAddress, pendingLightState, communicationHandler,
-                    fadeTime);
+            communicationHandler = new LifxLightCommunicationHandler(macAddress, scheduler, currentLightState);
+            currentStateUpdater = new LifxLightCurrentStateUpdater(macAddress, scheduler, currentLightState,
+                    communicationHandler, product);
+            onlineStateUpdater = new LifxLightOnlineStateUpdater(macAddress, scheduler, currentLightState,
+                    communicationHandler);
+            propertiesUpdater = new LifxLightPropertiesUpdater(macAddress, scheduler, currentLightState,
+                    communicationHandler);
+            propertiesUpdater.addPropertiesUpdateListener(this);
+            lightStateChanger = new LifxLightStateChanger(macAddress, scheduler, pendingLightState,
+                    communicationHandler, product, fadeTime);
 
             communicationHandler.start();
             currentStateUpdater.start();
             onlineStateUpdater.start();
+            propertiesUpdater.start();
             lightStateChanger.start();
+            startOrStopSignalStrengthUpdates();
         } catch (Exception e) {
-            logger.debug("Error occured while initializing LIFX handler: " + e.getMessage(), e);
+            logger.debug("Error occurred while initializing LIFX handler: {}", e.getMessage(), e);
             updateStatus(ThingStatus.OFFLINE, ThingStatusDetail.CONFIGURATION_ERROR, e.getMessage());
         } finally {
             lock.unlock();
@@ -204,6 +259,12 @@ public class LifxLightHandler extends BaseThingHandler {
             if (onlineStateUpdater != null) {
                 onlineStateUpdater.stop();
                 onlineStateUpdater = null;
+            }
+
+            if (propertiesUpdater != null) {
+                propertiesUpdater.stop();
+                propertiesUpdater.removePropertiesUpdateListener(this);
+                propertiesUpdater = null;
             }
 
             if (lightStateChanger != null) {
@@ -235,11 +296,10 @@ public class LifxLightHandler extends BaseThingHandler {
     private PercentType getPowerOnBrightness() {
         Channel channel = null;
 
-        ThingTypeUID thingTypeUID = getThing().getThingTypeUID();
-        if (thingTypeUID.equals(THING_TYPE_COLORLIGHT) || thingTypeUID.equals(THING_TYPE_COLORIRLIGHT)) {
+        if (product.isColor()) {
             ChannelUID channelUID = new ChannelUID(getThing().getUID(), LifxBindingConstants.CHANNEL_COLOR);
             channel = getThing().getChannel(channelUID.getId());
-        } else if (thingTypeUID.equals(THING_TYPE_WHITELIGHT)) {
+        } else {
             ChannelUID channelUID = new ChannelUID(getThing().getUID(), LifxBindingConstants.CHANNEL_BRIGHTNESS);
             channel = getThing().getChannel(channelUID.getId());
         }
@@ -251,6 +311,55 @@ public class LifxLightHandler extends BaseThingHandler {
         Configuration configuration = channel.getConfiguration();
         Object powerOnBrightness = configuration.get(LifxBindingConstants.CONFIG_PROPERTY_POWER_ON_BRIGHTNESS);
         return powerOnBrightness == null ? null : new PercentType(powerOnBrightness.toString());
+    }
+
+    private Products getProduct() {
+        String propertyValue = getThing().getProperties().get(LifxBindingConstants.PROPERTY_PRODUCT_ID);
+        try {
+            long productID = Long.parseLong(propertyValue);
+            return Products.getProductFromProductID(productID);
+        } catch (IllegalArgumentException e) {
+            return Products.getLikelyProduct(getThing().getThingTypeUID());
+        }
+    }
+
+    private void addRemoveZoneChannels(int zones) {
+        List<Channel> newChannels = new ArrayList<Channel>();
+
+        // retain non-zone channels
+        for (Channel channel : getThing().getChannels()) {
+            String channelId = channel.getUID().getId();
+            if (!channelId.startsWith(CHANNEL_COLOR_ZONE) && !channelId.startsWith(CHANNEL_TEMPERATURE_ZONE)) {
+                newChannels.add(channel);
+            }
+        }
+
+        // add zone channels
+        for (int i = 0; i < zones; i++) {
+            newChannels.add(channelFactory.createColorZoneChannel(getThing().getUID(), i));
+            newChannels.add(channelFactory.createTemperatureZoneChannel(getThing().getUID(), i));
+        }
+
+        updateThing(editThing().withChannels(newChannels).build());
+
+        Map<String, String> properties = editProperties();
+        properties.put(LifxBindingConstants.PROPERTY_ZONES, Integer.toString(zones));
+        updateProperties(properties);
+    }
+
+    @Override
+    public void channelLinked(ChannelUID channelUID) {
+        super.channelLinked(channelUID);
+        startOrStopSignalStrengthUpdates();
+    }
+
+    @Override
+    public void channelUnlinked(ChannelUID channelUID) {
+        startOrStopSignalStrengthUpdates();
+    }
+
+    private void startOrStopSignalStrengthUpdates() {
+        currentStateUpdater.setUpdateSignalStrength(isLinked(CHANNEL_SIGNAL_STRENGTH));
     }
 
     private void sendPacket(Packet packet) {
@@ -274,6 +383,9 @@ public class LifxLightHandler extends BaseThingHandler {
                     case CHANNEL_INFRARED:
                         sendPacket(new GetLightInfraredRequest());
                         break;
+                    case CHANNEL_SIGNAL_STRENGTH:
+                        sendPacket(new GetWifiInfoRequest());
+                        break;
                     default:
                         break;
                 }
@@ -282,6 +394,7 @@ public class LifxLightHandler extends BaseThingHandler {
             }
         } else {
             try {
+                boolean supportedCommand = true;
                 switch (channelUID.getId()) {
                     case CHANNEL_COLOR:
                         if (command instanceof HSBType) {
@@ -292,6 +405,8 @@ public class LifxLightHandler extends BaseThingHandler {
                             handleOnOffCommand((OnOffType) command);
                         } else if (command instanceof IncreaseDecreaseType) {
                             handleIncreaseDecreaseCommand((IncreaseDecreaseType) command);
+                        } else {
+                            supportedCommand = false;
                         }
                         break;
                     case CHANNEL_BRIGHTNESS:
@@ -301,6 +416,8 @@ public class LifxLightHandler extends BaseThingHandler {
                             handleOnOffCommand((OnOffType) command);
                         } else if (command instanceof IncreaseDecreaseType) {
                             handleIncreaseDecreaseCommand((IncreaseDecreaseType) command);
+                        } else {
+                            supportedCommand = false;
                         }
                         break;
                     case CHANNEL_TEMPERATURE:
@@ -308,6 +425,8 @@ public class LifxLightHandler extends BaseThingHandler {
                             handleTemperatureCommand((PercentType) command);
                         } else if (command instanceof IncreaseDecreaseType) {
                             handleIncreaseDecreaseTemperatureCommand((IncreaseDecreaseType) command);
+                        } else {
+                            supportedCommand = false;
                         }
                         break;
                     case CHANNEL_INFRARED:
@@ -315,10 +434,40 @@ public class LifxLightHandler extends BaseThingHandler {
                             handleInfraredCommand((PercentType) command);
                         } else if (command instanceof IncreaseDecreaseType) {
                             handleIncreaseDecreaseInfraredCommand((IncreaseDecreaseType) command);
+                        } else {
+                            supportedCommand = false;
                         }
                         break;
                     default:
+                        if (channelUID.getId().startsWith(CHANNEL_COLOR_ZONE)) {
+                            int zoneIndex = Integer.parseInt(channelUID.getId().replace(CHANNEL_COLOR_ZONE, ""));
+                            if (command instanceof HSBType) {
+                                handleHSBCommand((HSBType) command, zoneIndex);
+                            } else if (command instanceof PercentType) {
+                                handlePercentCommand((PercentType) command, zoneIndex);
+                            } else if (command instanceof IncreaseDecreaseType) {
+                                handleIncreaseDecreaseCommand((IncreaseDecreaseType) command, zoneIndex);
+                            } else {
+                                supportedCommand = false;
+                            }
+                        } else if (channelUID.getId().startsWith(CHANNEL_TEMPERATURE_ZONE)) {
+                            int zoneIndex = Integer.parseInt(channelUID.getId().replace(CHANNEL_TEMPERATURE_ZONE, ""));
+                            if (command instanceof PercentType) {
+                                handleTemperatureCommand((PercentType) command, zoneIndex);
+                            } else if (command instanceof IncreaseDecreaseType) {
+                                handleIncreaseDecreaseTemperatureCommand((IncreaseDecreaseType) command, zoneIndex);
+                            } else {
+                                supportedCommand = false;
+                            }
+                        } else {
+                            supportedCommand = false;
+                        }
                         break;
+                }
+
+                if (supportedCommand && !(command instanceof OnOffType)
+                        && !CHANNEL_INFRARED.equals(channelUID.getId())) {
+                    getLightStateForCommand().setPowerState(PowerState.ON);
                 }
             } catch (Exception ex) {
                 logger.error("Error while updating light: {}", ex.getMessage(), ex);
@@ -338,52 +487,65 @@ public class LifxLightHandler extends BaseThingHandler {
     }
 
     private void handleTemperatureCommand(PercentType temperature) {
-        logger.debug("The set temperature '{}' yields {} Kelvin", temperature, percentTypeToKelvin(temperature));
-        getLightStateForCommand().setTemperature(temperature);
-        if (getLightStateForCommand().getPowerState() != PowerState.ON) {
-            getLightStateForCommand().setPowerState(PowerState.ON);
-        }
+        HSBK newColor = getLightStateForCommand().getNullSafeColor();
+        newColor.setSaturation(PercentType.ZERO);
+        newColor.setTemperature(temperature);
+        getLightStateForCommand().setColor(newColor);
+    }
+
+    private void handleTemperatureCommand(PercentType temperature, int zoneIndex) {
+        HSBK newColor = getLightStateForCommand().getNullSafeColor(zoneIndex);
+        newColor.setSaturation(PercentType.ZERO);
+        newColor.setTemperature(temperature);
+        getLightStateForCommand().setColor(newColor, zoneIndex);
     }
 
     private void handleHSBCommand(HSBType hsb) {
-        getLightStateForCommand().setHSB(hsb);
-        if (getLightStateForCommand().getPowerState() != PowerState.ON) {
-            getLightStateForCommand().setPowerState(PowerState.ON);
-        }
+        getLightStateForCommand().setColor(hsb);
+    }
+
+    private void handleHSBCommand(HSBType hsb, int zoneIndex) {
+        getLightStateForCommand().setColor(hsb, zoneIndex);
     }
 
     private void handlePercentCommand(PercentType brightness) {
-        HSBType baseHSB = getLightStateForCommand().getHSB();
-        if (baseHSB != null) {
-            HSBType newHSB = new HSBType(baseHSB.getHue(), baseHSB.getSaturation(), brightness);
-            handleHSBCommand(newHSB);
-        }
+        getLightStateForCommand().setBrightness(brightness);
+    }
+
+    private void handlePercentCommand(PercentType brightness, int zoneIndex) {
+        getLightStateForCommand().setBrightness(brightness, zoneIndex);
     }
 
     private void handleOnOffCommand(OnOffType onOff) {
-        HSBType baseHSB = getLightStateForCommand().getHSB();
-        if (baseHSB != null && powerOnBrightness != null) {
+        if (powerOnBrightness != null) {
             PercentType newBrightness = onOff == OnOffType.ON ? powerOnBrightness : new PercentType(0);
-            HSBType newHSB = new HSBType(baseHSB.getHue(), baseHSB.getSaturation(), newBrightness);
-            getLightStateForCommand().setHSB(newHSB);
+            getLightStateForCommand().setBrightness(newBrightness);
         }
         getLightStateForCommand().setPowerState(onOff);
     }
 
     private void handleIncreaseDecreaseCommand(IncreaseDecreaseType increaseDecrease) {
-        HSBType baseHSB = getLightStateForCommand().getHSB();
-        if (baseHSB != null) {
-            PercentType newBrightness = increaseDecreasePercentType(increaseDecrease, baseHSB.getBrightness());
-            handlePercentCommand(newBrightness);
-        }
+        HSBK baseColor = getLightStateForCommand().getNullSafeColor();
+        PercentType newBrightness = increaseDecreasePercentType(increaseDecrease, baseColor.getHSB().getBrightness());
+        handlePercentCommand(newBrightness);
+    }
+
+    private void handleIncreaseDecreaseCommand(IncreaseDecreaseType increaseDecrease, int zoneIndex) {
+        HSBK baseColor = getLightStateForCommand().getNullSafeColor(zoneIndex);
+        PercentType newBrightness = increaseDecreasePercentType(increaseDecrease, baseColor.getHSB().getBrightness());
+        handlePercentCommand(newBrightness, zoneIndex);
     }
 
     private void handleIncreaseDecreaseTemperatureCommand(IncreaseDecreaseType increaseDecrease) {
-        PercentType baseTemperature = getLightStateForCommand().getTemperature();
-        if (baseTemperature != null) {
-            PercentType newTemperature = increaseDecreasePercentType(increaseDecrease, baseTemperature);
-            handleTemperatureCommand(newTemperature);
-        }
+        PercentType baseTemperature = getLightStateForCommand().getNullSafeColor().getTemperature();
+        PercentType newTemperature = increaseDecreasePercentType(increaseDecrease, baseTemperature);
+        handleTemperatureCommand(newTemperature);
+    }
+
+    private void handleIncreaseDecreaseTemperatureCommand(IncreaseDecreaseType increaseDecrease, int zoneIndex) {
+        PercentType baseTemperature = getLightStateForCommand().getNullSafeColor(zoneIndex).getTemperature();
+        PercentType newTemperature = increaseDecreasePercentType(increaseDecrease, baseTemperature);
+        handleTemperatureCommand(newTemperature, zoneIndex);
     }
 
     private void handleInfraredCommand(PercentType infrared) {
@@ -395,6 +557,19 @@ public class LifxLightHandler extends BaseThingHandler {
         if (baseInfrared != null) {
             PercentType newInfrared = increaseDecreasePercentType(increaseDecrease, baseInfrared);
             handleInfraredCommand(newInfrared);
+        }
+    }
+
+    @Override
+    public void handlePropertiesUpdate(Map<String, String> properties) {
+        updateProperties(properties);
+    }
+
+    private void updateStateIfChanged(String channel, State newState) {
+        State oldState = channelStates.get(channel);
+        if (oldState == null || !oldState.equals(newState)) {
+            updateState(channel, newState);
+            channelStates.put(channel, newState);
         }
     }
 

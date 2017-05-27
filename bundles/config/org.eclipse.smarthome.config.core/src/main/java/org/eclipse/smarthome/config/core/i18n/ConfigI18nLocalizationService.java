@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2014-2016 by the respective copyright holders.
+ * Copyright (c) 2014-2017 by the respective copyright holders.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -116,9 +116,9 @@ public class ConfigI18nLocalizationService {
                 .withMultiple(parameter.isMultiple()).withContext(parameter.getContext())
                 .withDefault(parameter.getDefault()).withLabel(label).withDescription(description).withOptions(options)
                 .withFilterCriteria(parameter.getFilterCriteria()).withGroupName(parameter.getGroupName())
-                .withAdvanced(parameter.isAdvanced()).withLimitToOptions(parameter.getLimitToOptions())
-                .withMultipleLimit(parameter.getMultipleLimit()).withUnit(parameter.getUnit()).withUnitLabel(unitLabel)
-                .build();
+                .withAdvanced(parameter.isAdvanced()).withVerify(parameter.isVerifyable())
+                .withLimitToOptions(parameter.getLimitToOptions()).withMultipleLimit(parameter.getMultipleLimit())
+                .withUnit(parameter.getUnit()).withUnitLabel(unitLabel).build();
 
         return localizedParameter;
     }

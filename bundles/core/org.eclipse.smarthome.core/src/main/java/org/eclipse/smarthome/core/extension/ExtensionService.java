@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2014-2016 by the respective copyright holders.
+ * Copyright (c) 2014-2017 by the respective copyright holders.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -7,6 +7,7 @@
  */
 package org.eclipse.smarthome.core.extension;
 
+import java.net.URI;
 import java.util.List;
 import java.util.Locale;
 
@@ -22,6 +23,9 @@ public interface ExtensionService {
 
     /**
      * Retrieves all extensions
+     *
+     * It is expected that this method is rather cheap to call and will return quickly, i.e. some caching should be
+     * implemented if required.
      *
      * @param locale the locale to use for the result
      * @return the localized extensions
@@ -47,6 +51,7 @@ public interface ExtensionService {
 
     /**
      * Installs the given extension.
+     *
      * This can be a long running process. The framework makes sure that this is called within a separate thread and
      * ExtensionEvents will be sent upon its completion.
      *
@@ -56,11 +61,22 @@ public interface ExtensionService {
 
     /**
      * Uninstalls the given extension.
+     *
      * This can be a long running process. The framework makes sure that this is called within a separate thread and
      * ExtensionEvents will be sent upon its completion.
      *
      * @param id the id of the extension to uninstall
      */
     void uninstall(String id);
+
+    /**
+     * Parses the given URI and extracts an extension Id.
+     *
+     * This must not be a long running process but return immediately.
+     *
+     * @param extensionURI the URI from which to parse the extension Id.
+     * @return the extension Id if the URI can be parsed, otherwise <code>null</code>.
+     */
+    String getExtensionId(URI extensionURI);
 
 }

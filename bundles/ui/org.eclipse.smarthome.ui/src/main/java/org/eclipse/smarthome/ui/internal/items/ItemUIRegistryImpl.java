@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2014-2016 by the respective copyright holders.
+ * Copyright (c) 2014-2017 by the respective copyright holders.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -12,12 +12,17 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
+import java.util.WeakHashMap;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import java.util.stream.Stream;
 
 import org.eclipse.emf.common.util.BasicEList;
 import org.eclipse.emf.common.util.EList;
+import org.eclipse.emf.ecore.EObject;
+import org.eclipse.emf.ecore.util.EcoreUtil;
 import org.eclipse.smarthome.core.common.registry.RegistryChangeListener;
 import org.eclipse.smarthome.core.items.GenericItem;
 import org.eclipse.smarthome.core.items.GroupItem;
@@ -30,6 +35,7 @@ import org.eclipse.smarthome.core.library.items.ColorItem;
 import org.eclipse.smarthome.core.library.items.ContactItem;
 import org.eclipse.smarthome.core.library.items.DateTimeItem;
 import org.eclipse.smarthome.core.library.items.DimmerItem;
+import org.eclipse.smarthome.core.library.items.ImageItem;
 import org.eclipse.smarthome.core.library.items.LocationItem;
 import org.eclipse.smarthome.core.library.items.NumberItem;
 import org.eclipse.smarthome.core.library.items.PlayerItem;
@@ -39,6 +45,8 @@ import org.eclipse.smarthome.core.library.items.SwitchItem;
 import org.eclipse.smarthome.core.library.types.DateTimeType;
 import org.eclipse.smarthome.core.library.types.DecimalType;
 import org.eclipse.smarthome.core.library.types.NextPreviousType;
+import org.eclipse.smarthome.core.library.types.OnOffType;
+import org.eclipse.smarthome.core.library.types.PercentType;
 import org.eclipse.smarthome.core.library.types.PlayPauseType;
 import org.eclipse.smarthome.core.transform.TransformationException;
 import org.eclipse.smarthome.core.transform.TransformationHelper;
@@ -71,6 +79,7 @@ import org.slf4j.LoggerFactory;
  *
  * @author Kai Kreuzer - Initial contribution and API
  * @author Chris Jackson
+ * @author Stefan Triller - Method to convert a state into something a sitemap entity can understand
  *
  */
 public class ItemUIRegistryImpl implements ItemUIRegistry {
@@ -89,6 +98,8 @@ public class ItemUIRegistryImpl implements ItemUIRegistry {
     protected Set<ItemUIProvider> itemUIProviders = new HashSet<ItemUIProvider>();
 
     protected ItemRegistry itemRegistry;
+
+    private Map<Widget, Widget> defaultWidgets = Collections.synchronizedMap(new WeakHashMap<Widget, Widget>());
 
     public ItemUIRegistryImpl() {
     }
@@ -240,6 +251,9 @@ public class ItemUIRegistryImpl implements ItemUIRegistry {
         if (itemType.equals(PlayerItem.class)) {
             return createPlayerButtons();
         }
+        if (itemType.equals(ImageItem.class)) {
+            return SitemapFactory.eINSTANCE.createImage();
+        }
 
         return null;
     }
@@ -276,11 +290,11 @@ public class ItemUIRegistryImpl implements ItemUIRegistry {
         String itemName = w.getItem();
         if (itemName != null) {
             State state = null;
-            String formatPattern = null;
+            String formatPattern = getFormatPattern(label);
 
             try {
                 final Item item = getItem(itemName);
-                if (getFormatPattern(label) == null) {
+                if (formatPattern == null) {
                     final StateDescription stateDescription = item.getStateDescription();
                     if (stateDescription != null) {
                         final String pattern = stateDescription.getPattern();
@@ -294,19 +308,21 @@ public class ItemUIRegistryImpl implements ItemUIRegistry {
                 if (updatedPattern != null) {
                     formatPattern = updatedPattern;
 
-                    // TODO: TEE: we should find a more generic solution here! When
-                    // using indexes in formatString this 'contains' will fail again
-                    // and will cause an 'java.util.IllegalFormatConversionException:
-                    // d != java.lang.String' later on when trying to format a String
-                    // as %d (number).
-                    if (label.contains("%d")) {
-                        // a number is requested
-                        state = item.getState();
-                        if (!(state instanceof DecimalType)) {
-                            state = item.getStateAs(DecimalType.class);
+                    if (!formatPattern.isEmpty()) {
+                        // TODO: TEE: we should find a more generic solution here! When
+                        // using indexes in formatString this 'contains' will fail again
+                        // and will cause an 'java.util.IllegalFormatConversionException:
+                        // d != java.lang.String' later on when trying to format a String
+                        // as %d (number).
+                        if (label.contains("%d")) {
+                            // a number is requested
+                            state = item.getState();
+                            if (!(state instanceof DecimalType)) {
+                                state = item.getStateAs(DecimalType.class);
+                            }
+                        } else {
+                            state = item.getState();
                         }
-                    } else {
-                        state = item.getState();
                     }
                 }
             } catch (ItemNotFoundException e) {
@@ -314,24 +330,28 @@ public class ItemUIRegistryImpl implements ItemUIRegistry {
             }
 
             if (formatPattern != null) {
-                if (state == null || state instanceof UnDefType) {
-                    formatPattern = formatUndefined(formatPattern);
-                } else if (state instanceof Type) {
-                    // The following exception handling has been added to work around a Java bug with formatting
-                    // numbers. See http://bugs.sun.com/view_bug.do?bug_id=6476425
-                    // Without this catch, the whole sitemap, or page can not be displayed!
-                    // This also handles IllegalFormatConversionException, which is a subclass of IllegalArgument.
-                    try {
-                        formatPattern = ((Type) state).format(formatPattern);
-                    } catch (IllegalArgumentException e) {
-                        logger.warn("Exception while formatting value '{}' of item {} with format '{}': {}", state,
-                                itemName, formatPattern, e);
-                        formatPattern = new String("Err");
+                if (formatPattern.isEmpty()) {
+                    label = label.substring(0, label.indexOf("[")).trim();
+                } else {
+                    if (state == null || state instanceof UnDefType) {
+                        formatPattern = formatUndefined(formatPattern);
+                    } else if (state instanceof Type) {
+                        // The following exception handling has been added to work around a Java bug with formatting
+                        // numbers. See http://bugs.sun.com/view_bug.do?bug_id=6476425
+                        // Without this catch, the whole sitemap, or page can not be displayed!
+                        // This also handles IllegalFormatConversionException, which is a subclass of IllegalArgument.
+                        try {
+                            formatPattern = ((Type) state).format(formatPattern);
+                        } catch (IllegalArgumentException e) {
+                            logger.warn("Exception while formatting value '{}' of item {} with format '{}': {}", state,
+                                    itemName, formatPattern, e);
+                            formatPattern = new String("Err");
+                        }
                     }
-                }
 
-                label = label.trim();
-                label = label.substring(0, label.indexOf("[") + 1) + formatPattern + "]";
+                    label = label.trim();
+                    label = label.substring(0, label.indexOf("[") + 1) + formatPattern + "]";
+                }
             }
         }
 
@@ -462,13 +482,41 @@ public class ItemUIRegistryImpl implements ItemUIRegistry {
         if (itemName != null) {
             try {
                 Item item = getItem(itemName);
-                return item.getState();
+                return convertState(w, item);
             } catch (ItemNotFoundException e) {
                 logger.error("Cannot retrieve item '{}' for widget {}",
                         new Object[] { itemName, w.eClass().getInstanceTypeName() });
             }
         }
         return UnDefType.UNDEF;
+    }
+
+    /**
+     * Converts an item state to the type the widget supports (if possible)
+     *
+     * @param w Widget in sitemap that shows the state
+     * @param i item
+     * @return the converted state or the original if conversion was not possible
+     */
+    private State convertState(Widget w, Item i) {
+        State returnState = null;
+
+        // RollerShutter are represented as Switch in a Sitemap but need a PercentType state
+        if (w instanceof Slider || (w instanceof Switch && i instanceof RollershutterItem)) {
+            returnState = i.getStateAs(PercentType.class);
+        } else if (w instanceof Switch) {
+            Switch sw = (Switch) w;
+            if (sw.getMappings().size() == 0) {
+                returnState = i.getStateAs(OnOffType.class);
+            }
+        }
+
+        // if returnState is null, a conversion was not possible
+        if (returnState == null) {
+            // we return the original state to not break anything
+            returnState = i.getState();
+        }
+        return returnState;
     }
 
     /**
@@ -505,6 +553,23 @@ public class ItemUIRegistryImpl implements ItemUIRegistry {
      * {@inheritDoc}
      */
     @Override
+    public EList<Widget> getChildren(Sitemap sitemap) {
+        EList<Widget> widgets = sitemap.getChildren();
+
+        EList<Widget> result = new BasicEList<Widget>();
+        for (Widget widget : widgets) {
+            Widget resolvedWidget = resolveDefault(widget);
+            if (resolvedWidget != null) {
+                result.add(resolvedWidget);
+            }
+        }
+        return result;
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
     public EList<Widget> getChildren(LinkableWidget w) {
         EList<Widget> widgets = null;
         if (w instanceof Group && w.getChildren().isEmpty()) {
@@ -523,6 +588,15 @@ public class ItemUIRegistryImpl implements ItemUIRegistry {
         return result;
     }
 
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public EObject getParent(Widget w) {
+        Widget w2 = defaultWidgets.get(w);
+        return (w2 == null) ? w.eContainer() : w2.eContainer();
+    }
+
     private Widget resolveDefault(Widget widget) {
         if (!(widget instanceof Default)) {
             return widget;
@@ -532,13 +606,23 @@ public class ItemUIRegistryImpl implements ItemUIRegistry {
                 if (item != null) {
                     Widget defaultWidget = getDefaultWidget(item.getClass(), item.getName());
                     if (defaultWidget != null) {
-                        defaultWidget.setItem(item.getName());
+                        copyProperties(widget, defaultWidget);
+                        defaultWidgets.put(defaultWidget, widget);
                         return defaultWidget;
                     }
                 }
             }
             return null;
         }
+    }
+
+    private void copyProperties(Widget source, Widget target) {
+        target.setItem(source.getItem());
+        target.setIcon(source.getIcon());
+        target.setLabel(source.getLabel());
+        target.getVisibility().addAll(EcoreUtil.copyAll(source.getVisibility()));
+        target.getLabelColor().addAll(EcoreUtil.copyAll(source.getLabelColor()));
+        target.getValueColor().addAll(EcoreUtil.copyAll(source.getValueColor()));
     }
 
     /**
@@ -690,7 +774,20 @@ public class ItemUIRegistryImpl implements ItemUIRegistry {
      * {@inheritDoc}
      */
     @Override
+    public Stream<Item> stream() {
+        return itemRegistry.stream();
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
     public String getWidgetId(Widget w) {
+        Widget w2 = defaultWidgets.get(w);
+        if (w2 != null) {
+            return getWidgetId(w2);
+        }
+
         String id = "";
         while (w.eContainer() instanceof Widget) {
             Widget parent = (Widget) w.eContainer();

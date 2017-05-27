@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2014-2016 by the respective copyright holders.
+ * Copyright (c) 2014-2017 by the respective copyright holders.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -137,7 +137,7 @@ public class AudioManagerImpl implements AudioManager, ConfigOptionProvider {
             try {
                 return sink.getVolume();
             } catch (IOException e) {
-                logger.error("An exception occured while getting the volume of sink {} : '{}'", sink.getId(),
+                logger.error("An exception occurred while getting the volume of sink {} : '{}'", sink.getId(),
                         e.getMessage());
             }
         }
@@ -153,7 +153,7 @@ public class AudioManagerImpl implements AudioManager, ConfigOptionProvider {
             try {
                 sink.setVolume(volume);
             } catch (IOException e) {
-                logger.error("An exception occured while setting the volume of sink {} : '{}'", sink.getId(),
+                logger.error("An exception occurred while setting the volume of sink {} : '{}'", sink.getId(),
                         e.getMessage());
             }
         }
@@ -206,7 +206,7 @@ public class AudioManagerImpl implements AudioManager, ConfigOptionProvider {
         String regex = pattern.replace("?", ".?").replace("*", ".*?");
         Set<String> matchedSources = new HashSet<String>();
 
-        for (String aSource : audioSinks.keySet()) {
+        for (String aSource : audioSources.keySet()) {
             if (aSource.matches(regex)) {
                 matchedSources.add(aSource);
             }

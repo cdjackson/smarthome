@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2014-2016 by the respective copyright holders.
+ * Copyright (c) 2014-2017 by the respective copyright holders.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -144,17 +144,22 @@ public class WebAppServlet extends BaseServlet {
             if (widgetId == null || widgetId.isEmpty() || widgetId.equals(sitemapName)) {
                 // we are at the homepage, so we render the children of the sitemap root node
                 if (subscriptionId != null) {
-                    subscriptions.setPageId(subscriptionId, sitemap.getName(), sitemapName);
+                    if (subscriptions.exists(subscriptionId)) {
+                        subscriptions.setPageId(subscriptionId, sitemap.getName(), sitemapName);
+                    } else {
+                        logger.debug("Basic UI requested a non-existing event subscription id ({})", subscriptionId);
+                    }
                 }
                 String label = sitemap.getLabel() != null ? sitemap.getLabel() : sitemapName;
-                result.append(renderer.processPage(sitemapName, sitemapName, label, sitemap.getChildren(), async));
+                EList<Widget> children = renderer.getItemUIRegistry().getChildren(sitemap);
+                result.append(renderer.processPage(sitemapName, sitemapName, label, children, async));
             } else if (!widgetId.equals("Colorpicker")) {
                 // we are on some subpage, so we have to render the children of the widget that has been selected
                 if (subscriptionId != null) {
                     if (subscriptions.exists(subscriptionId)) {
                         subscriptions.setPageId(subscriptionId, sitemap.getName(), widgetId);
                     } else {
-                        logger.warn("Basic UI requested a non-existing event subscription id ({})", subscriptionId);
+                        logger.debug("Basic UI requested a non-existing event subscription id ({})", subscriptionId);
                     }
                 }
                 Widget w = renderer.getItemUIRegistry().getWidget(sitemap, widgetId);

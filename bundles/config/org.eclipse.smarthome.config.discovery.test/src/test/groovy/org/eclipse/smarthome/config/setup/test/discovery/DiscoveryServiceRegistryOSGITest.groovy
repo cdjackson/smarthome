@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2014-2016 by the respective copyright holders.
+ * Copyright (c) 2014-2017 by the respective copyright holders.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -158,18 +158,18 @@ class DiscoveryServiceRegistryOSGITest extends OSGiTest {
 
     @Test
     void 'assert that a discovery can be aborted for a known DiscoveryService' () {
-        def onErrorOccuredCalled = false
+        def onErrorOccurredCalled = false
 
         boolean state
         state = discoveryServiceRegistry.startScan(new ThingTypeUID(ANY_BINDING_ID_1,ANY_THING_TYPE_1), [
-            onErrorOccurred: {onErrorOccuredCalled = true}
+            onErrorOccurred: {onErrorOccurredCalled = true}
         ] as ScanListener)
         assertTrue(state)
 
         state = discoveryServiceRegistry.abortScan(new ThingTypeUID(ANY_BINDING_ID_1,ANY_THING_TYPE_1))
         assertTrue(state)
 
-        waitForAssert { assertTrue onErrorOccuredCalled }
+        waitForAssert { assertTrue onErrorOccurredCalled }
     }
 
     @Test

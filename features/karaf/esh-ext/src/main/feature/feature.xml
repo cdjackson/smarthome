@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
 
-    Copyright (c) 2014-2016 by the respective copyright holders.
+    Copyright (c) 2014-2017 by the respective copyright holders.
     All rights reserved. This program and the accompanying materials
     are made available under the terms of the Eclipse Public License v1.0
     which accompanies this distribution, and is available at
@@ -9,6 +9,11 @@
 
 -->
 <features name="${project.artifactId}-${project.version}" xmlns="http://karaf.apache.org/xmlns/features/v1.3.0">
+
+  <feature name="esh-binding-astro" version="${project.version}">
+    <feature>esh-base</feature>
+    <bundle>mvn:org.eclipse.smarthome.binding/org.eclipse.smarthome.binding.astro/${project.version}</bundle>
+  </feature>
 
   <feature name="esh-binding-digitalstrom" version="${project.version}">
     <feature>esh-base</feature>
@@ -53,6 +58,18 @@
   <feature name="esh-binding-yahooweather" version="${project.version}">
     <feature>esh-base</feature>
     <bundle>mvn:org.eclipse.smarthome.binding/org.eclipse.smarthome.binding.yahooweather/${project.version}</bundle>
+  </feature>
+
+  <feature name="esh-extensionservice-marketplace" version="${project.version}">
+    <feature>esh-base</feature>
+    <bundle>mvn:org.eclipse.smarthome.extensionservice/org.eclipse.smarthome.extensionservice.marketplace/${project.version}</bundle>
+  </feature>
+
+  <feature name="esh-extensionservice-marketplace-automation" version="${project.version}">
+    <feature>esh-base</feature>
+    <feature>esh-automation-api</feature>
+    <feature>esh-extensionservice-marketplace</feature>
+    <bundle>mvn:org.eclipse.smarthome.extensionservice/org.eclipse.smarthome.extensionservice.marketplace.automation/${project.version}</bundle>
   </feature>
 
   <feature name="esh-transform-exec" description="Exec Transformation" version="${project.version}">

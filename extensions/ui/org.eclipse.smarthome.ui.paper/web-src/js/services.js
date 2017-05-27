@@ -368,7 +368,7 @@ angular.module('PaperUI.services', [ 'PaperUI.constants' ]).config(function($htt
                         if (param.context.toUpperCase() === 'TIME') {
                             value = (value.getHours() < 10 ? '0' : '') + value.getHours() + ':' + (value.getMinutes() < 10 ? '0' : '') + value.getMinutes();
                         } else if (param.context.toUpperCase() === 'DATE') {
-                            value = (value.getFullYear() + '-' + (value.getMonth() < 10 ? '0' : '') + (value.getMonth() + 1) + '-' + value.getDate());
+                            value = (value.getFullYear() + '-' + (value.getMonth() + 1 < 10 ? '0' : '') + (value.getMonth() + 1) + '-' + value.getDate());
                         }
                     }
                 }
@@ -449,7 +449,7 @@ angular.module('PaperUI.services', [ 'PaperUI.constants' ]).config(function($htt
                         if (date) {
                             if (typeof sending !== "undefined" && sending) {
                                 if (parameter.context.toUpperCase() === 'DATE') {
-                                    configuration[parameter.name] = date instanceof Date ? (date.getFullYear() + '-' + (date.getMonth() < 10 ? '0' : '') + (date.getMonth() + 1) + '-' + date.getDate()) : date;
+                                    configuration[parameter.name] = date instanceof Date ? (date.getFullYear() + '-' + (date.getMonth() + 1 < 10 ? '0' : '') + (date.getMonth() + 1) + '-' + date.getDate()) : date;
                                 } else {
                                     configuration[parameter.name] = date instanceof Date ? (date.getHours() < 10 ? '0' : '') + date.getHours() + ':' + (date.getMinutes() < 10 ? '0' : '') + date.getMinutes() : date;
                                 }
@@ -559,46 +559,42 @@ angular.module('PaperUI.services', [ 'PaperUI.constants' ]).config(function($htt
             var self = this;
             self.thingType = thingType, self.channelTypes = channelTypes, self.channels = channels;
             return $.grep(channels, function(channel, i) {
-                var channelType = self.getChannelTypeById(self.thingType, self.channelTypes, channel.id);
+                var channelType = self.getChannelTypeByUID(self.thingType, self.channelTypes, channel.channelTypeUID);
                 return channelType ? advanced == channelType.advanced : true;
             });
         },
-        getChannelTypeById : function(thingType, channelTypes, channelId) {
+        getChannelTypeByUID : function(thingType, channelTypes, channelUID) {
             if (thingType) {
-                var cid_part = channelId.split('#', 2)
-                if (cid_part.length == 1) {
+                if (thingType.channels && thingType.channels.length > 0) {
                     var c, c_i, c_l;
                     for (c_i = 0, c_l = thingType.channels.length; c_i < c_l; ++c_i) {
                         c = thingType.channels[c_i];
-                        if (c.id == channelId) {
+                        if (c.typeUID == channelUID) {
                             return c;
                         }
                     }
-                } else if (cid_part.length == 2) {
-                    var cg, cg_i, cg_l;
+                }
+                if (thingType.channelGroups && thingType.channelGroups.length > 0) {
                     var c, c_i, c_l;
+                    var cg, cg_i, cg_l;
                     for (cg_i = 0, cg_l = thingType.channelGroups.length; cg_i < cg_l; ++cg_i) {
                         cg = thingType.channelGroups[cg_i];
-                        if (cg.id == cid_part[0]) {
+                        if (cg && cg.channels) {
                             for (c_i = 0, c_l = cg.channels.length; c_i < c_l; ++c_i) {
                                 c = cg.channels[c_i];
-                                if (c.id == cid_part[1]) {
+                                if (c.typeUID == channelUID) {
                                     return c;
                                 }
                             }
                         }
                     }
-                } else {
-                    return;
                 }
             }
             if (channelTypes) {
                 var c = {}, c_i, c_l;
                 for (c_i = 0, c_l = channelTypes.length; c_i < c_l; ++c_i) {
                     c = channelTypes[c_i];
-                    c.advanced = false;
-                    var id = c.UID.split(':', 2);
-                    if (id[1] == channelId) {
+                    if (c.UID == channelUID) {
                         return c;
                     }
                 }
@@ -636,125 +632,6 @@ angular.module('PaperUI.services', [ 'PaperUI.constants' ]).config(function($htt
                 }
             }
             return groups;
-        }
-    }
-}).factory('util', function(dateTime) {
-    return {
-        hasProperties : function(object) {
-            if (typeof jQuery !== 'undefined') {
-                return !jQuery.isEmptyObject(object);
-            } else {
-                if (object) {
-                    return Object.keys(object).length > 0;
-                }
-                return false;
-            }
-        },
-        timePrint : function(pattern, date) {
-            var months = dateTime.getMonths(true);
-            if (pattern) {
-                var exp = '%1$T';
-                while (pattern.toUpperCase().indexOf(exp) != -1) {
-                    var index = pattern.toUpperCase().indexOf(exp);
-                    var str = "";
-                    if (pattern.length > (index + exp.length)) {
-                        switch (pattern[index + exp.length]) {
-                            case 'H':
-                                str = formatNumber(date.getHours());
-                                break;
-                            case 'l':
-                                var hours = (date.getHours() % 12 || 12);
-                                var ampm = date.getHours() < 12 ? "AM" : "PM";
-                                str = hours + " " + ampm;
-                                break;
-                            case 'I':
-                                var hours = (date.getHours() % 12 || 12);
-                                var ampm = date.getHours() < 12 ? "AM" : "PM";
-                                str = formatNumber(hours) + " " + formatNumber(ampm);
-                                break;
-                            case 'M':
-                                str = formatNumber(date.getMinutes());
-                                break;
-                            case 'S':
-                                str = formatNumber(date.getSeconds());
-                                break;
-                            case 'p':
-                                str = date.getHours() < 12 ? "AM" : "PM";
-                                break;
-                            case 'R':
-                                str = formatNumber(date.getHours()) + ":" + formatNumber(date.getMinutes());
-                                break;
-                            case 'T':
-                                str = (formatNumber(date.getHours()) + ":" + formatNumber(date.getMinutes()) + ":" + formatNumber(date.getSeconds()));
-                                break;
-                            case 'r':
-                                var hours = (date.getHours() % 12 || 12);
-                                var ampm = date.getHours() < 12 ? "AM" : "PM";
-                                str = formatNumber(hours) + ":" + formatNumber(date.getMinutes()) + ":" + formatNumber(date.getSeconds()) + " " + ampm;
-                                break;
-                            case 'D':
-                                str = formatNumber(date.getMonth()) + "/" + formatNumber(date.getDate()) + "/" + formatNumber(date.getFullYear());
-                                break;
-                            case 'F':
-                                str = formatNumber(date.getFullYear()) + "-" + formatNumber(date.getMonth()) + "-" + formatNumber(date.getDate());
-                                break;
-                            case 'c':
-                                str = date;
-                                break;
-                            case 'B':
-                                var fullMonths = dateTime.getMonths(false);
-                                if (fullMonths.length > 0) {
-                                    str = fullMonths[date.getMonth()];
-                                }
-                                break;
-                            case 'h':
-                            case 'b':
-                                var shortMonths = dateTime.getMonths(true);
-                                if (shortMonths.length > 0) {
-                                    str = shortMonths[date.getMonth()];
-                                }
-                                break;
-                            case 'A':
-                                var longDays = dateTime.getDaysOfWeek(false);
-                                if (longDays.length > 0) {
-                                    str = longDays[date.getDay()];
-                                }
-                                break;
-                            case 'a':
-                                var shortDays = dateTime.getDaysOfWeek(true);
-                                if (shortDays.length > 0) {
-                                    str = shortDays[date.getDay()];
-                                }
-                                break;
-                            case 'C':
-                                str = formatNumber(parseInt(date.getFullYear() / 100));
-                                break;
-                            case 'Y':
-                                str = date.getFullYear();
-                                break;
-                            case 'y':
-                                str = formatNumber(parseInt(date.getFullYear() % 100));
-                                break;
-                            case 'm':
-                                str = formatNumber(date.getMonth() + 1);
-                                break;
-                            case 'd':
-                                str = formatNumber(date.getDate());
-                                break;
-                            case 'e':
-                                str = formatNumber(date.getDate());
-                                break;
-                        }
-                        pattern = pattern.substr(0, index) + str + pattern.substr(index + exp.length + 1, pattern.length);
-                    }
-                }
-                return pattern;
-            } else {
-                return "";
-            }
-            function formatNumber(number) {
-                return (number < 10 ? "0" : "") + number;
-            }
         }
     }
 }).provider("dateTime", function dateTimeProvider() {

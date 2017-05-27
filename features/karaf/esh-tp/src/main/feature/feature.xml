@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
 
-    Copyright (c) 2014-2016 by the respective copyright holders.
+    Copyright (c) 2014-2017 by the respective copyright holders.
     All rights reserved. This program and the accompanying materials
     are made available under the terms of the Eclipse Public License v1.0
     which accompanies this distribution, and is available at
@@ -16,6 +16,7 @@
 
     <feature dependency="true">esh-tp-apache-commons</feature>
     <feature dependency="true">esh-tp-httpclient</feature>
+    <feature dependency="true">esh-tp-measurement</feature>
     <feature dependency="true">esh-tp-jax-rs</feature>
     <feature dependency="true">esh-tp-jax-rs-provider-swagger</feature>
     <feature dependency="true">esh-tp-jupnp</feature>
@@ -117,7 +118,7 @@
     <capability>esh.tp;feature=jax-rs-provider-security;version=2.2</capability>
     <feature dependency="true">esh-tp-jax-rs-min</feature>
     <bundle>mvn:com.eclipsesource.jaxrs/provider-security/2.2</bundle>
-  </feature>  
+  </feature>
 
   <feature name="esh-tp-jax-rs-provider-gson" description="JAX-RS provider for de/serialization using Gson" version="${project.version}">
     <capability>esh.tp;feature=jax-rs-provider-gson;version=2.3</capability>
@@ -150,6 +151,12 @@
     <capability>esh.tp;feature=jmdns;version=3.5.1</capability>
 
     <bundle>mvn:org.jmdns/jmdns/3.5.1</bundle>
+  </feature>
+
+  <feature name="esh-tp-measurement" version="${project.version}">
+    <bundle>mvn:javax.measure/unit-api/1.0</bundle>
+    <bundle>mvn:tec.uom/uom-se/1.0.3</bundle>
+    <bundle>mvn:tec.uom.lib/uom-lib-common/1.0.1</bundle>
   </feature>
 
   <feature name="esh-tp-paho" description="MQTT v3 Client" version="${project.version}">
@@ -188,9 +195,9 @@
     <bundle dependency="true">mvn:de.maggu2810.p2redist/com.google.guava/10.0.1.v201203051515</bundle>
     <bundle dependency="true">mvn:de.maggu2810.p2redist/org.antlr.runtime/3.2.0.v201101311130</bundle>
 
-    <bundle dependency="true">mvn:de.maggu2810.p2redist/org.eclipse.equinox.common/3.7.0.v20150402-1709</bundle>
-    <bundle dependency="true">mvn:de.maggu2810.p2redist/org.eclipse.equinox.registry/3.6.0.v20150318-1503</bundle>
-    <bundle dependency="true">mvn:de.maggu2810.p2redist/org.eclipse.equinox.supplement/1.6.0.v20141009-1504</bundle>
+    <bundle dependency="true">mvn:org.eclipse.platform/org.eclipse.equinox.common/3.8.0</bundle>
+    <bundle dependency="true">mvn:org.eclipse.platform/org.eclipse.equinox.registry/3.6.100</bundle>
+    <bundle dependency="true">mvn:org.eclipse.platform/org.eclipse.equinox.supplement/1.6.100</bundle>
 
     <!-- Add ASM package -->
     <!-- org.eclipse.xtext.common.types is using Require-Bundle -->

@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2014-2016 by the respective copyright holders.
+ * Copyright (c) 2014-2017 by the respective copyright holders.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -8,20 +8,19 @@
 package org.eclipse.smarthome.binding.lifx.internal;
 
 import java.nio.ByteBuffer;
+import java.time.Duration;
+import java.time.LocalDateTime;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.ReentrantLock;
 
-import org.eclipse.smarthome.binding.lifx.LifxBindingConstants;
 import org.eclipse.smarthome.binding.lifx.handler.LifxLightHandler.CurrentLightState;
 import org.eclipse.smarthome.binding.lifx.internal.fields.MACAddress;
 import org.eclipse.smarthome.binding.lifx.internal.listener.LifxResponsePacketListener;
-import org.eclipse.smarthome.binding.lifx.internal.protocol.EchoRequestResponse;
 import org.eclipse.smarthome.binding.lifx.internal.protocol.GetEchoRequest;
 import org.eclipse.smarthome.binding.lifx.internal.protocol.GetServiceRequest;
 import org.eclipse.smarthome.binding.lifx.internal.protocol.Packet;
-import org.eclipse.smarthome.core.common.ThreadPoolManager;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -33,25 +32,25 @@ import org.slf4j.LoggerFactory;
 public class LifxLightOnlineStateUpdater implements LifxResponsePacketListener {
 
     private static final int ECHO_POLLING_INTERVAL = 15;
-    private static final int MAXIMUM_POLLING_RETRIES = 4;
+    private static final int MAXIMUM_POLLING_RETRIES = 3;
 
     private final Logger logger = LoggerFactory.getLogger(LifxLightOnlineStateUpdater.class);
 
     private final String macAsHex;
+    private final ScheduledExecutorService scheduler;
     private final CurrentLightState currentLightState;
     private final LifxLightCommunicationHandler communicationHandler;
 
     private final ReentrantLock lock = new ReentrantLock();
 
-    private final ScheduledExecutorService scheduler = ThreadPoolManager
-            .getScheduledPool(LifxBindingConstants.THREADPOOL_NAME);
-
     private ScheduledFuture<?> echoJob;
+    private LocalDateTime lastSeen = LocalDateTime.MIN;
     private int unansweredEchoPackets;
 
-    public LifxLightOnlineStateUpdater(MACAddress macAddress, CurrentLightState currentLightState,
-            LifxLightCommunicationHandler communicationHandler) {
+    public LifxLightOnlineStateUpdater(MACAddress macAddress, ScheduledExecutorService scheduler,
+            CurrentLightState currentLightState, LifxLightCommunicationHandler communicationHandler) {
         this.macAsHex = macAddress.getHex();
+        this.scheduler = scheduler;
         this.currentLightState = currentLightState;
         this.communicationHandler = communicationHandler;
     }
@@ -64,19 +63,21 @@ public class LifxLightOnlineStateUpdater implements LifxResponsePacketListener {
                 lock.lock();
                 logger.trace("{} : Polling", macAsHex);
                 if (currentLightState.isOnline()) {
-                    if (unansweredEchoPackets < MAXIMUM_POLLING_RETRIES) {
-                        ByteBuffer payload = ByteBuffer.allocate(Long.SIZE / 8);
-                        payload.putLong(System.currentTimeMillis());
+                    if (Duration.between(lastSeen, LocalDateTime.now()).getSeconds() > ECHO_POLLING_INTERVAL) {
+                        if (unansweredEchoPackets < MAXIMUM_POLLING_RETRIES) {
+                            ByteBuffer payload = ByteBuffer.allocate(Long.SIZE / 8);
+                            payload.putLong(System.currentTimeMillis());
 
-                        GetEchoRequest request = new GetEchoRequest();
-                        request.setResponseRequired(true);
-                        request.setPayload(payload);
+                            GetEchoRequest request = new GetEchoRequest();
+                            request.setResponseRequired(true);
+                            request.setPayload(payload);
 
-                        communicationHandler.sendPacket(request);
-                        unansweredEchoPackets++;
-                    } else {
-                        currentLightState.setOfflineByCommunicationError();
-                        unansweredEchoPackets = 0;
+                            communicationHandler.sendPacket(request);
+                            unansweredEchoPackets++;
+                        } else {
+                            currentLightState.setOfflineByCommunicationError();
+                            unansweredEchoPackets = 0;
+                        }
                     }
                 } else {
                     // are we not configured? let's broadcast instead
@@ -85,7 +86,7 @@ public class LifxLightOnlineStateUpdater implements LifxResponsePacketListener {
                     communicationHandler.broadcastPacket(packet);
                 }
             } catch (Exception e) {
-                logger.error("Error occured while polling online state", e);
+                logger.error("Error occurred while polling online state", e);
             } finally {
                 lock.unlock();
             }
@@ -100,7 +101,7 @@ public class LifxLightOnlineStateUpdater implements LifxResponsePacketListener {
                 echoJob = scheduler.scheduleWithFixedDelay(echoRunnable, 0, ECHO_POLLING_INTERVAL, TimeUnit.SECONDS);
             }
         } catch (Exception e) {
-            logger.error("Error occured while starting online state poller", e);
+            logger.error("Error occurred while starting online state poller", e);
         } finally {
             lock.unlock();
         }
@@ -115,7 +116,7 @@ public class LifxLightOnlineStateUpdater implements LifxResponsePacketListener {
                 echoJob = null;
             }
         } catch (Exception e) {
-            logger.error("Error occured while stopping online state poller", e);
+            logger.error("Error occurred while stopping online state poller", e);
         } finally {
             lock.unlock();
         }
@@ -123,9 +124,8 @@ public class LifxLightOnlineStateUpdater implements LifxResponsePacketListener {
 
     @Override
     public void handleResponsePacket(Packet packet) {
-        if (packet instanceof EchoRequestResponse) {
-            unansweredEchoPackets = 0;
-        }
+        lastSeen = LocalDateTime.now();
+        unansweredEchoPackets = 0;
     }
 
 }

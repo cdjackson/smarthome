@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2014-2016 by the respective copyright holders.
+ * Copyright (c) 2014-2017 by the respective copyright holders.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -45,8 +45,6 @@ public class VideoRenderer extends AbstractWidgetRenderer {
         if (videoWidget.getEncoding() != null && videoWidget.getEncoding().contains("mjpeg")) {
             // we handle mjpeg streams as an html image as browser can usually handle this
             snippet = getSnippet("image");
-            snippet = StringUtils.replace(snippet, "%setrefresh%", "");
-            snippet = StringUtils.replace(snippet, "%refresh%", "");
         } else {
             snippet = getSnippet("video");
         }

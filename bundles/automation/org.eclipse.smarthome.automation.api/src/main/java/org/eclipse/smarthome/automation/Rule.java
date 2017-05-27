@@ -136,27 +136,30 @@ public class Rule {
 
     /**
      * Rules can have
+     * <ul>
      * <li><code>tags</code> - non-hierarchical keywords or terms for describing them. This method is
-     * used for getting the tags assign to this Rule. The tags are used to filter the rules.
+     * used for getting the tags assign to this Rule. The tags are used to filter the rules.</li>
+     * </ul>
      *
-     * @return a list of tags
+     * @return a {@link Set} of tags
      */
     public Set<String> getTags() {
-        return tags;
+        return tags = tags != null ? tags : Collections.<String> emptySet();
     }
 
     /**
      * Rules can have
+     * <ul>
      * <li><code>tags</code> - non-hierarchical keywords or terms for describing them. This method is
      * used for setting the tags to this rule. This property can be changed only when the Rule is not in active state.
-     * The tags are used to filter the rules.
+     * The tags are used to filter the rules.</li>
+     * </ul>
      *
      * @param ruleTags list of tags assign to this Rule.
-     * @throws IllegalStateException IllegalStateException when the rule is in
-     *             active state.
+     * @throws IllegalStateException when the rule is in active state.
      */
     public void setTags(Set<String> ruleTags) throws IllegalStateException {
-        tags = ruleTags;
+        tags = ruleTags != null ? ruleTags : Collections.<String> emptySet();
     }
 
     /**
@@ -223,9 +226,8 @@ public class Rule {
     }
 
     /**
-     * This method is used for getting the Set with {@link ConfigDescriptionParameter}s defining meta info for
-     * configuration
-     * properties of the Rule.<br/>
+     * This method is used for getting the {@link List} with {@link ConfigDescriptionParameter}s
+     * defining meta info for configuration properties of the Rule.
      *
      * @return a {@link Set} of {@link ConfigDescriptionParameter}s.
      */
@@ -248,8 +250,8 @@ public class Rule {
         return conditions;
     }
 
-    public void setConditions(List<Condition> conditoins) {
-        this.conditions = (conditoins == null) ? new ArrayList<Condition>(3) : conditoins;
+    public void setConditions(List<Condition> conditions) {
+        this.conditions = (conditions == null) ? new ArrayList<Condition>(3) : conditions;
     }
 
     public List<Action> getActions() {
@@ -310,7 +312,7 @@ public class Rule {
     }
 
     /**
-     * This method is used to return a group of module of this rule
+     * This method is used to return the module of this rule.
      *
      * @param moduleClazz optional parameter defining type looking modules. The
      *            types are {@link Trigger}, {@link Condition} or {@link Action}
@@ -339,7 +341,6 @@ public class Rule {
     public int hashCode() {
         final int prime = 31;
         int result = 1;
-        result = prime * result + ((templateUID == null) ? 0 : templateUID.hashCode());
         result = prime * result + ((uid == null) ? 0 : uid.hashCode());
         return result;
     }
@@ -352,17 +353,10 @@ public class Rule {
         if (obj == null) {
             return false;
         }
-        if (getClass() != obj.getClass()) {
+        if (!(obj instanceof Rule)) {
             return false;
         }
         Rule other = (Rule) obj;
-        if (templateUID == null) {
-            if (other.templateUID != null) {
-                return false;
-            }
-        } else if (!templateUID.equals(other.templateUID)) {
-            return false;
-        }
         if (uid == null) {
             if (other.uid != null) {
                 return false;
