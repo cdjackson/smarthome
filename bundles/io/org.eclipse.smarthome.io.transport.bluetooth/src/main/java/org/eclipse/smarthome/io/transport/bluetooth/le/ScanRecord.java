@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 1997, 2015 by Huawei Technologies Co., Ltd. and others.
+ * Copyright (c) 2014-2017 by the respective copyright holders.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -12,18 +12,44 @@ import java.util.Map;
 import java.util.UUID;
 
 /**
+ * Represents a scan record from Bluetooth LE scan.
  *
  * @author Chris Jackson - Initial Contribution
  *
  */
 public class ScanRecord {
     /**
+     * The advertising flags indicating the discoverable mode and capability of the device
+     */
+    protected int advertiseFlags = 0;
+
+    /**
+     * Raw bytes of scan record.
+     */
+    protected byte[] rawData;
+
+    /**
+     * The local name of the BLE device. The is a UTF-8 encoded string.
+     */
+    protected String deviceName;
+
+    /**
+     * List of discovered service UUIDs
+     */
+    protected List<UUID> serviceUuids;
+
+    /**
+     * The TX Power reported
+     */
+    protected int txPower = Integer.MIN_VALUE;
+
+    /**
      * Returns the advertising flags indicating the discoverable mode and capability of the device.
      *
      * @return
      */
     int getAdvertiseFlags() {
-        return 0;
+        return advertiseFlags;
     }
 
     /**
@@ -32,7 +58,7 @@ public class ScanRecord {
      * @return
      */
     byte[] getBytes() {
-        return null;
+        return rawData;
     }
 
     /**
@@ -41,7 +67,7 @@ public class ScanRecord {
      * @return
      */
     String getDeviceName() {
-        return null;
+        return deviceName;
     }
 
     /**
@@ -88,7 +114,7 @@ public class ScanRecord {
      * @return
      */
     List<UUID> getServiceUuids() {
-        return null;
+        return serviceUuids;
     }
 
     /**
@@ -97,6 +123,6 @@ public class ScanRecord {
      * @return
      */
     int getTxPowerLevel() {
-        return 0;
+        return txPower;
     }
 }

@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 1997, 2015 by Huawei Technologies Co., Ltd. and others.
+ * Copyright (c) 2014-2016 by the respective copyright holders.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -20,8 +20,20 @@ public class ScanSettings {
     public static final int CALLBACK_TYPE_ON_FOUND = 1;
     public static final int CALLBACK_TYPE_ON_LOST = 2;
 
+    /**
+     * Trigger a callback for every Bluetooth advertisement found that matches the filter criteria.
+     */
     public static final int CALLBACK_TYPE_ALL_MATCHES = 0;
+
+    /**
+     * A result callback is only triggered for the first advertisement packet received that matches the filter criteria.
+     */
     public static final int CALLBACK_TYPE_FIRST_MATCH = 1;
+
+    /**
+     * Receive a callback when advertisements are no longer received from a device that has been previously reported by
+     * a first match callback.
+     */
     public static final int CALLBACK_TYPE_MATCH_LOST = 2;
 
     public static final int SCAN_MODE_LOW_POWER = 0;

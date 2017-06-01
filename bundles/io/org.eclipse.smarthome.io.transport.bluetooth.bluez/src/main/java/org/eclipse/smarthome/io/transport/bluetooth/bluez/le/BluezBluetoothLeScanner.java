@@ -9,15 +9,10 @@ package org.eclipse.smarthome.io.transport.bluetooth.bluez.le;
 
 import java.util.List;
 
-import org.eclipse.smarthome.io.transport.bluetooth.BluetoothDevice;
-import org.eclipse.smarthome.io.transport.bluetooth.BluetoothEventListener;
 import org.eclipse.smarthome.io.transport.bluetooth.bluez.BluezBluetoothAdapter;
-import org.eclipse.smarthome.io.transport.bluetooth.events.BluetoothDeviceDiscoveredEvent;
-import org.eclipse.smarthome.io.transport.bluetooth.events.BluetoothEvent;
 import org.eclipse.smarthome.io.transport.bluetooth.le.BluetoothLeScanner;
 import org.eclipse.smarthome.io.transport.bluetooth.le.ScanCallback;
 import org.eclipse.smarthome.io.transport.bluetooth.le.ScanFilter;
-import org.eclipse.smarthome.io.transport.bluetooth.le.ScanResult;
 import org.eclipse.smarthome.io.transport.bluetooth.le.ScanSettings;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -28,8 +23,8 @@ import org.slf4j.LoggerFactory;
  * @author Chris Jackson - Initial Contribution
  *
  */
-public class BluezBluetoothLeScanner extends BluetoothLeScanner implements BluetoothEventListener {
-    private static final Logger logger = LoggerFactory.getLogger(BluetoothLeScanner.class);
+public class BluezBluetoothLeScanner extends BluetoothLeScanner {
+    private static final Logger logger = LoggerFactory.getLogger(BluezBluetoothLeScanner.class);
 
     private BluezBluetoothAdapter adapter;
 
@@ -65,43 +60,6 @@ public class BluezBluetoothLeScanner extends BluetoothLeScanner implements Bluet
         if (adapter != null) {
             adapter.cancelDiscovery();
             adapter.removeEventListener(this);
-        }
-    }
-
-    @Override
-    public void handleBluetoothEvent(BluetoothEvent event) {
-        if (event instanceof BluetoothDeviceDiscoveredEvent) {
-            BluetoothDeviceDiscoveredEvent discoveryEvent = (BluetoothDeviceDiscoveredEvent) event;
-
-            if (filters != null && filters.size() != 0) {
-                // TODO: Handle filters
-            }
-
-            BluetoothDevice device = discoveryEvent.getDevice();
-
-            // Check if we support the GATT profile.
-            // (This is not a reliable method so remove for now!)
-            // boolean supportsGatt = false;
-            // UUID[] uuids = device.getUuids();
-            // for (UUID uuid : uuids) {
-            // if (BluezBluetoothConstants.BLUEZ_PROFILE_GATT.toString().equals(uuid.toString())) {
-            // supportsGatt = true;
-            // break;
-            // }
-            // }
-
-            // if (supportsGatt == false) {
-            // logger.debug("BLE Scanner: Device found that doesn't support BLE {} {}", device.getAddress(),
-            // device.getName());
-            // return;
-            // }
-
-            int callbackType = ScanSettings.CALLBACK_TYPE_ALL_MATCHES;
-
-            ScanResult result = new ScanResult(discoveryEvent.getDevice(), null, 0, 0);
-
-            logger.debug("BLE Scanner: New BLE device {} {}", device.getAddress(), device.getName());
-            callback.onScanResult(callbackType, result);
         }
     }
 }

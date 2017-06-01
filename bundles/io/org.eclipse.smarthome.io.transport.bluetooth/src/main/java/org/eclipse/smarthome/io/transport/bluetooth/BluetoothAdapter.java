@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 1997, 2015 by Huawei Technologies Co., Ltd. and others.
+ * Copyright (c) 2014-2016 by the respective copyright holders.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -22,6 +22,7 @@ import org.eclipse.smarthome.io.transport.bluetooth.le.BluetoothLeScanner;
  *
  */
 public abstract class BluetoothAdapter {
+    public static final int BD_ADDRESS_LENGTH = 17;
     public static final int STATE_OFF = 10;
     public static final int STATE_ON = 12;
 
@@ -32,6 +33,7 @@ public abstract class BluetoothAdapter {
     protected String name;
     protected String address;
 
+    protected boolean enabled = false;
     protected boolean leReady = false;
 
     /**
@@ -56,7 +58,7 @@ public abstract class BluetoothAdapter {
      * @return true if adapter is enabled, false otherwise
      */
     public boolean isEnabled() {
-        return false;
+        return enabled;
     }
 
     /**
@@ -65,19 +67,21 @@ public abstract class BluetoothAdapter {
      * @return true if the adapter supports Bluetooth LE
      */
     public boolean isLeReady() {
-        return false;
+        return leReady;
     }
 
     /**
      * Enable the Bluetooth adapter. This may power the adapter on.
      */
     public void enable() {
+        enabled = true;
     }
 
     /**
      * Disable the Bluetooth adapter. This may power the adapter off
      */
     public void disable() {
+        enabled = false;
     }
 
     /**
@@ -226,13 +230,34 @@ public abstract class BluetoothAdapter {
     }
 
     /**
-     * Validate a String Bluetooth address, such as "DE:AD:00:00:BE:EF"
+     * Validate a {@link String} Bluetooth address, such as "DE:AD:00:00:BE:EF"
      * Alphabetic characters must be uppercase to be valid.
      *
-     * @param address
-     * @return
+     * @param address the address to check (as {@link String})
+     * @return true if the address is a valid address
      */
     public static boolean checkBluetoothAddress(String address) {
+        if (address == null || address.length() != BD_ADDRESS_LENGTH) {
+            return false;
+        }
+        for (int i = 0; i < BD_ADDRESS_LENGTH; i++) {
+            char c = address.charAt(i);
+
+            // Check address - 2 bytes should be hex, and then a colon
+            switch (i % 3) {
+                case 0:
+                case 1:
+                    if ((c >= '0' && c <= '9') || (c >= 'A' && c <= 'F')) {
+                        break;
+                    }
+                    return false;
+                case 2:
+                    if (c == ':') {
+                        break;
+                    }
+                    return false;
+            }
+        }
         return true;
     }
 
