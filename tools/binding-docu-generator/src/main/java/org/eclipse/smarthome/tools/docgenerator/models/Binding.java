@@ -49,6 +49,7 @@ public class Binding implements Model<org.eclipse.smarthome.tools.docgenerator.s
      * @return Name of the binding.
      */
     public String name() {
+        System.out.println("NAME!!!!!!!!");
         return delegate.getName();
     }
 
