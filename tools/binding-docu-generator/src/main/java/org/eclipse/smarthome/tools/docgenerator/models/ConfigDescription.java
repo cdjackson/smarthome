@@ -1,12 +1,13 @@
 package org.eclipse.smarthome.tools.docgenerator.models;
 
-import org.eclipse.smarthome.tools.docgenerator.data.ParameterList;
+import java.util.ArrayList;
+import java.util.List;
 
 public class ConfigDescription implements Model<org.eclipse.smarthome.tools.docgenerator.schemas.ConfigDescription> {
     /**
      * The original instance from the XML parser.
      */
-    private org.eclipse.smarthome.tools.docgenerator.schemas.ConfigDescription delegtae;
+    private org.eclipse.smarthome.tools.docgenerator.schemas.ConfigDescription delegate;
 
     /**
      * Default constructor.
@@ -20,7 +21,7 @@ public class ConfigDescription implements Model<org.eclipse.smarthome.tools.docg
      * @param delegtae The instance from the XML parser.
      */
     public ConfigDescription(org.eclipse.smarthome.tools.docgenerator.schemas.ConfigDescription delegtae) {
-        this.delegtae = delegtae;
+        this.delegate = delegtae;
     }
 
     /**
@@ -28,7 +29,7 @@ public class ConfigDescription implements Model<org.eclipse.smarthome.tools.docg
      */
     @Override
     public org.eclipse.smarthome.tools.docgenerator.schemas.ConfigDescription getRealImpl() {
-        return delegtae;
+        return delegate;
     }
 
     /**
@@ -38,23 +39,23 @@ public class ConfigDescription implements Model<org.eclipse.smarthome.tools.docg
      */
     @Override
     public void setModel(org.eclipse.smarthome.tools.docgenerator.schemas.ConfigDescription config) {
-        this.delegtae = config;
+        this.delegate = config;
     }
 
     /**
      * @return The URI of the configuration.
      */
     public String uri() {
-        return delegtae.getUri();
+        return delegate.getUri();
     }
 
     /**
      * @return A list of parameters.
      */
-    public ParameterList parameter() {
-        ParameterList parameterList = new ParameterList();
-        for (org.eclipse.smarthome.tools.docgenerator.schemas.Parameter param : delegtae.getParameter()) {
-            parameterList.put(param);
+    public List<org.eclipse.smarthome.tools.docgenerator.schemas.Parameter> parameter() {
+        List<org.eclipse.smarthome.tools.docgenerator.schemas.Parameter> parameterList = new ArrayList<org.eclipse.smarthome.tools.docgenerator.schemas.Parameter>();
+        for (org.eclipse.smarthome.tools.docgenerator.schemas.Parameter param : delegate.getParameter()) {
+            parameterList.add(param);
         }
         return parameterList;
     }

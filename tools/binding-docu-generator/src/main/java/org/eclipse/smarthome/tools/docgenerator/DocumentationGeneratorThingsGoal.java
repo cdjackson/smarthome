@@ -33,13 +33,13 @@ public class DocumentationGeneratorThingsGoal extends AbstractMojo {
     /**
      * Name of your readme template file.
      */
-    @Parameter(defaultValue = "${basedir}/doc-template/README.md.mustache")
+    @Parameter(defaultValue = "${basedir}/doc-template/things-list.md.mustache")
     private String template;
 
     /**
      * The name of the generated docu file.
      */
-    @Parameter(defaultValue = "${basedir}/README.md")
+    @Parameter(defaultValue = "${basedir}/doc/things-list.md")
     private String outputFile;
 
     /**

@@ -51,10 +51,10 @@ public class DefaultEshConfigurationParserTest {
         ChannelGroupList channelGroupList = result.getChannelGroups();
         assertThat(channelGroupList.size(), is(0));
 
-        ChannelList channelList = result.getChannels();
+        ChannelTypeList channelList = result.getChannels();
         assertThat(channelList.size(), is(18));
-        assertThat(channelList.get(0).getModel(), instanceOf(Channel.class));
-        Channel channel = (Channel) channelList.get(0).getModel();
+        assertThat(channelList.get(0).getModel(), instanceOf(ChannelType.class));
+        ChannelType channel = (ChannelType) channelList.get(0).getModel();
         assertThat(channel.id(), is("roomSetpoint"));
         assertThat(channel.label(), is("Room setpoint"));
         assertThat(channel.description(), is("The room temperature setpoint."));

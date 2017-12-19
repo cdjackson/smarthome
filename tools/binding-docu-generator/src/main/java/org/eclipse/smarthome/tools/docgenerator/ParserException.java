@@ -1,6 +1,11 @@
 package org.eclipse.smarthome.tools.docgenerator;
 
 public class ParserException extends Exception {
+    /**
+     *
+     */
+    private static final long serialVersionUID = 7772063944465852927L;
+
     public ParserException() {
     }
 

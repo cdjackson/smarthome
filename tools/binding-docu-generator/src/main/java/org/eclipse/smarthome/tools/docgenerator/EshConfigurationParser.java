@@ -1,8 +1,8 @@
 package org.eclipse.smarthome.tools.docgenerator;
 
-import org.eclipse.smarthome.tools.docgenerator.models.ConfigurationParseResult;
-
 import java.nio.file.Path;
+
+import org.eclipse.smarthome.tools.docgenerator.models.ConfigurationParseResult;
 
 /**
  * Parses an ESH configuration.

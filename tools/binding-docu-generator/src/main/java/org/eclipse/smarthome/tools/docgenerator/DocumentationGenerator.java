@@ -1,8 +1,9 @@
 package org.eclipse.smarthome.tools.docgenerator;
 
-import org.eclipse.smarthome.tools.docgenerator.models.ConfigurationParseResult;
-
 import java.nio.file.Path;
+
+import org.eclipse.smarthome.tools.docgenerator.models.ConfigurationParseResult;
+import org.eclipse.smarthome.tools.docgenerator.models.Thing;
 
 /**
  * Generates a binding documentation from a template and an ESH configuration.
@@ -16,9 +17,10 @@ public interface DocumentationGenerator {
      * get copied to the workingDirectory directory.
      *
      * @param eshConfiguration the parsed ESH configuration
-     * @param outputFile       the path where the generated README gets written to
-     * @param partialsDir      the path to the partials
-     * @param readmeTemplate   the path to the readme template
+     * @param outputFile the path where the generated README gets written to
+     * @param partialsDir the path to the partials
+     * @param readmeTemplate the path to the readme template
      */
-    void generateDocumentation(ConfigurationParseResult eshConfiguration, Path outputFile, Path partialsDir, Path readmeTemplate);
+    void generateDocumentation(ConfigurationParseResult eshConfiguration, Path outputFile, Path partialsDir,
+            Path readmeTemplate, Thing thing);
 }

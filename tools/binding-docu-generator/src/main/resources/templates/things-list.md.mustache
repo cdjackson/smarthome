@@ -1,0 +1,36 @@
+## Bridges (Total: {{bridgeList.size}})
+| Thing Type Id  | Label   |
+|----------------|---------|
+{{#bridgeList}}{{#model}}| {{this.id}} | {{label}} |{{/model}}
+{{/bridgeList}}
+
+## Things (Total: {{thingList.size}})
+| Thing Type Id  | Label   |
+|----------------|---------|
+{{#thingList}}{{#model}}| {{this.id}} | {{label}} |{{/model}}
+{{/thingList}}
+
+## Channels
+| Channel Type Id  | Label   |
+|------------------|---------|
+{{#channelList}}{{#model}}| {{this.id}} | {{label}} |{{/model}}
+{{/channelList}}
+
+===================
+
+## Things
+
+{{#thingList}}
+{{#model}}
+### {{label}}
+
+Thing Type UID: {{id}}
+
+| Channel Type Id  | Label   |
+|------------------|---------|
+{{#channelList}}{{#model}}| {{this.id}} | {{label}} |{{/model}}
+{{/channelList}}
+
+
+{{/model}}
+{{/thingList}}

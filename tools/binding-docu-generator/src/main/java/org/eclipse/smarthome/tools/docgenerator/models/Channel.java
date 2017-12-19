@@ -1,15 +1,14 @@
 package org.eclipse.smarthome.tools.docgenerator.models;
 
-import org.eclipse.smarthome.tools.docgenerator.schemas.ChannelType;
-
 /**
  * Wrapper class to not fully depend on the existing models.
  */
-public class Channel implements Model<ChannelType> {
+public class Channel implements Model<org.eclipse.smarthome.tools.docgenerator.schemas.Channel> {
     /**
      * The object we obtained by the XML parser.
      */
-    private ChannelType delegate;
+    private org.eclipse.smarthome.tools.docgenerator.schemas.ChannelType typeDelegate;
+    private org.eclipse.smarthome.tools.docgenerator.schemas.Channel delegate;
 
     /**
      * Default constructor.
@@ -20,15 +19,22 @@ public class Channel implements Model<ChannelType> {
     /**
      * @param delegate The object from the XML parser.
      */
-    public Channel(ChannelType delegate) {
+    public Channel(org.eclipse.smarthome.tools.docgenerator.schemas.Channel delegate) {
         this.delegate = delegate;
     }
 
     /**
-     * @return Returns the {@link ChannelType} instance.
+     * @param delegate The object from the XML parser.
+     */
+    public void setChannelType(org.eclipse.smarthome.tools.docgenerator.schemas.ChannelType typeDelegate) {
+        this.typeDelegate = typeDelegate;
+    }
+
+    /**
+     * @return Returns the {@link Channel} instance.
      */
     @Override
-    public ChannelType getRealImpl() {
+    public org.eclipse.smarthome.tools.docgenerator.schemas.Channel getRealImpl() {
         return delegate;
     }
 
@@ -38,7 +44,7 @@ public class Channel implements Model<ChannelType> {
      * @param channel The real model.
      */
     @Override
-    public void setModel(ChannelType channel) {
+    public void setModel(org.eclipse.smarthome.tools.docgenerator.schemas.Channel channel) {
         this.delegate = channel;
     }
 
@@ -50,46 +56,75 @@ public class Channel implements Model<ChannelType> {
     }
 
     /**
+     * @return The id of the channel.
+     */
+    public String typeId() {
+        return delegate.getTypeId();
+    }
+
+    /**
      * @return The item type of the channel.
      */
     public String itemType() {
-        return delegate.getItemType();
+        if (typeDelegate == null) {
+            return null;
+        }
+        return typeDelegate.getItemType();
     }
 
     /**
      * @return The state of the channel.
      */
     public State state() {
-        return new State(delegate.getState());
+        if (typeDelegate == null) {
+            return null;
+        }
+        return new State(typeDelegate.getState());
     }
 
     /**
      * @return The description of the channel.
      */
     public String description() {
-        return delegate.getDescription();
+        if (typeDelegate == null) {
+            return null;
+        }
+        return typeDelegate.getDescription();
     }
 
     /**
      * @return The label of the channel.
      */
     public String label() {
-        return delegate.getLabel();
+        if (delegate.getLabel() != null) {
+            return delegate.getLabel();
+        }
+        if (typeDelegate == null) {
+            return null;
+        }
+        return typeDelegate.getLabel();
     }
 
     /**
      * @return The category of the channel.
      */
     public String category() {
-        return delegate.getCategory();
+        if (typeDelegate == null) {
+            return null;
+        }
+        return typeDelegate.getCategory();
     }
 
     /**
      * @return A list of URIs for the configuration.
      */
     public String configDescriptionRef() {
-        if (delegate.getConfigDescriptionRef() != null) {
-            return delegate.getConfigDescriptionRef().getUri();
+        if (typeDelegate == null) {
+            return null;
+        }
+
+        if (typeDelegate.getConfigDescriptionRef() != null) {
+            return typeDelegate.getConfigDescriptionRef().getUri();
         } else {
             return "";
         }
@@ -99,8 +134,12 @@ public class Channel implements Model<ChannelType> {
      * @return The configuration of the channel.
      */
     public ConfigDescription configDescription() {
-        if (delegate.getConfigDescription() != null) {
-            return new ConfigDescription(delegate.getConfigDescription());
+        if (typeDelegate == null) {
+            return null;
+        }
+
+        if (typeDelegate.getConfigDescription() != null) {
+            return new ConfigDescription(typeDelegate.getConfigDescription());
         } else {
             return null;
         }

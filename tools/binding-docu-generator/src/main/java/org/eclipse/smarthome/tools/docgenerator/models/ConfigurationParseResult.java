@@ -1,20 +1,27 @@
 package org.eclipse.smarthome.tools.docgenerator.models;
 
-import org.eclipse.smarthome.tools.docgenerator.data.*;
-import org.eclipse.smarthome.tools.docgenerator.schemas.*;
+import java.util.ArrayList;
+import java.util.List;
+
+import org.eclipse.smarthome.tools.docgenerator.data.BridgeList;
+import org.eclipse.smarthome.tools.docgenerator.data.ChannelGroupList;
+import org.eclipse.smarthome.tools.docgenerator.data.ConfigurationList;
+import org.eclipse.smarthome.tools.docgenerator.schemas.BridgeType;
+import org.eclipse.smarthome.tools.docgenerator.schemas.ChannelGroupType;
+import org.eclipse.smarthome.tools.docgenerator.schemas.ChannelType;
 
 public class ConfigurationParseResult {
 
-    private final ChannelList channels;
-    private final ThingList things;
+    private final ArrayList<ChannelType> channelTypes;
+    private final List<Thing> things;
     private final ChannelGroupList channelGroups;
     private final BridgeList bridges;
     private final ConfigurationList configList;
     private final Binding binding;
 
     public ConfigurationParseResult() {
-        channels = new ChannelList();
-        things = new ThingList();
+        channelTypes = new ArrayList<ChannelType>();
+        things = new ArrayList<Thing>();
         channelGroups = new ChannelGroupList();
         bridges = new BridgeList();
         configList = new ConfigurationList();
@@ -26,8 +33,8 @@ public class ConfigurationParseResult {
      *
      * @param channelType the channel type
      */
-    public void putChannel(ChannelType channelType) {
-        channels.put(channelType);
+    public void putChannelType(ChannelType channelType) {
+        channelTypes.add(channelType);
     }
 
     /**
@@ -35,8 +42,8 @@ public class ConfigurationParseResult {
      *
      * @param thingType the thing type
      */
-    public void putThing(ThingType thingType) {
-        things.put(thingType);
+    public void putThing(Thing thingType) {
+        things.add(thingType);
     }
 
     /**
@@ -62,7 +69,8 @@ public class ConfigurationParseResult {
      *
      * @param configDescription the config description
      */
-    public void putConfigDescription(org.eclipse.smarthome.tools.docgenerator.schemas.ConfigDescription configDescription) {
+    public void putConfigDescription(
+            org.eclipse.smarthome.tools.docgenerator.schemas.ConfigDescription configDescription) {
         configList.put(configDescription);
     }
 
@@ -75,11 +83,11 @@ public class ConfigurationParseResult {
         this.binding.setModel(binding);
     }
 
-    public ChannelList getChannels() {
-        return channels;
+    public List<ChannelType> getChannels() {
+        return channelTypes;
     }
 
-    public ThingList getThings() {
+    public List<Thing> getThings() {
         return things;
     }
 

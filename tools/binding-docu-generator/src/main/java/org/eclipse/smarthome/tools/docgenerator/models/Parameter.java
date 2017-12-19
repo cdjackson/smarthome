@@ -1,11 +1,10 @@
 package org.eclipse.smarthome.tools.docgenerator.models;
 
-import org.eclipse.smarthome.tools.docgenerator.data.OptionList;
-import org.eclipse.smarthome.tools.docgenerator.schemas.OptionsType;
-import org.eclipse.smarthome.tools.docgenerator.util.BooleanUtils;
-
 import java.math.BigDecimal;
+import java.util.ArrayList;
+import java.util.List;
 
+import org.eclipse.smarthome.tools.docgenerator.util.BooleanUtils;
 
 public class Parameter implements Model<org.eclipse.smarthome.tools.docgenerator.schemas.Parameter> {
     /**
@@ -135,11 +134,12 @@ public class Parameter implements Model<org.eclipse.smarthome.tools.docgenerator
     /**
      * @return A list of options.
      */
-    public OptionList options() {
-        OptionList optionList = new OptionList();
+    public List<org.eclipse.smarthome.tools.docgenerator.schemas.OptionsType.Option> options() {
+        List<org.eclipse.smarthome.tools.docgenerator.schemas.OptionsType.Option> optionList = new ArrayList<org.eclipse.smarthome.tools.docgenerator.schemas.OptionsType.Option>();
         if (delegate.getOptions() != null) {
-            for (OptionsType.Option option : delegate.getOptions().getOption()) {
-                optionList.put(option);
+            for (org.eclipse.smarthome.tools.docgenerator.schemas.OptionsType.Option option : delegate.getOptions()
+                    .getOption()) {
+                optionList.add(option);
             }
         }
         return optionList;

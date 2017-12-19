@@ -1,6 +1,8 @@
 package org.eclipse.smarthome.tools.docgenerator.impl;
 
+import java.io.BufferedWriter;
 import java.io.IOException;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.HashMap;
 import java.util.Map;
@@ -9,14 +11,17 @@ import org.apache.maven.plugin.logging.Log;
 import org.eclipse.smarthome.tools.docgenerator.DocumentationGenerator;
 import org.eclipse.smarthome.tools.docgenerator.GeneratorException;
 import org.eclipse.smarthome.tools.docgenerator.models.ConfigurationParseResult;
+import org.eclipse.smarthome.tools.docgenerator.models.Thing;
 
 import com.github.jknack.handlebars.Context;
 import com.github.jknack.handlebars.Handlebars;
 import com.github.jknack.handlebars.Template;
+import com.github.jknack.handlebars.context.FieldValueResolver;
 import com.github.jknack.handlebars.context.MapValueResolver;
 import com.github.jknack.handlebars.context.MethodValueResolver;
 import com.github.jknack.handlebars.io.FileTemplateLoader;
 import com.github.jknack.handlebars.io.TemplateLoader;
+import com.google.common.base.Charsets;
 
 /**
  * Documentation Generator using Mustache templates.
@@ -38,9 +43,9 @@ public class MustacheDocumentationGenerator implements DocumentationGenerator {
 
     @Override
     public void generateDocumentation(ConfigurationParseResult eshConfiguration, Path outputFile, Path partialsDir,
-            Path readmeTemplate) {
+            Path readmeTemplate, Thing thing) {
         try {
-            Context scope = createDataScope(eshConfiguration);
+            Context scope = createDataScope(eshConfiguration, thing);
             writeDocumentation(scope, partialsDir, readmeTemplate, outputFile);
         } catch (IOException e) {
             throw new GeneratorException("Could not write README.", e);
@@ -48,12 +53,12 @@ public class MustacheDocumentationGenerator implements DocumentationGenerator {
     }
 
     /**
-     * Creates the scope for Mustache.
+     * Creates the scope for Handlebars.
      *
      * @param configuration Configuration.
-     * @return Cope for Mustache.
+     * @return Context for Handlebars.
      */
-    private Context createDataScope(ConfigurationParseResult configuration) {
+    private Context createDataScope(ConfigurationParseResult configuration, Thing thing) {
         // Put everything into the scope
         Map<String, Object> scope = new HashMap<>();
         scope.put("binding", configuration.getBinding());
@@ -62,9 +67,13 @@ public class MustacheDocumentationGenerator implements DocumentationGenerator {
         scope.put("channelList", configuration.getChannels());
         scope.put("channelGroupList", configuration.getChannelGroups());
         scope.put("configList", configuration.getConfigList());
-        scope.put("blah", "blah!!!");
 
-        return Context.newBuilder(scope).resolver(MapValueResolver.INSTANCE, MethodValueResolver.INSTANCE).build();
+        if (thing != null) {
+            scope.put("thing", thing);
+        }
+
+        return Context.newBuilder(scope)
+                .resolver(MapValueResolver.INSTANCE, MethodValueResolver.INSTANCE, FieldValueResolver.INSTANCE).build();
     }
 
     private void writeDocumentation(Context scope, Path partialsDir, Path readmeTemplate, Path outputFile)
@@ -74,27 +83,24 @@ public class MustacheDocumentationGenerator implements DocumentationGenerator {
         // readmeTemplate));
         // Mustache mustache = mf.compile(OverridableMustacheResolver.README_NAME);
 
-        TemplateLoader loader = new FileTemplateLoader(
-                "/Users/chris/Development/openHAB-2/git/org.openhab.binding.zwave/doc-template");
+        TemplateLoader loader = new FileTemplateLoader("/");
         // loader.setPrefix("/templates/partials");
         // loader.setSuffix(".mustache");
         loader.setSuffix(null);
         Handlebars handlebars = new Handlebars(loader);
 
         System.out.println("Opening " + readmeTemplate);
-        Template template = handlebars.compile("/README.md.mustache");
+        // Template template = handlebars.compile("/README.md.mustache");
+        Template template = handlebars.compile(readmeTemplate.toString());
 
-        Template template2 = handlebars
-                .compileInline("Hello {{blah}} {{binding}} === {{binding.name}} - {{binding.author}}\n");
-        System.out.println(template2.apply(scope));
-
-        System.out.println(template.apply(scope));
+        // com.kotcrab.remark
+        // String output = template.apply(scope);
+        // System.out.println(output);
 
         // Write README to file
-        // try (BufferedWriter writer = Files.newBufferedWriter(outputFile, Charsets.UTF_8)) {
-        // writer.write(template.apply("Handlebars.java"));
-        // mustache.execute(writer, scope).close();
-        // }
+        try (BufferedWriter writer = Files.newBufferedWriter(outputFile, Charsets.UTF_8)) {
+            writer.write(template.apply(scope));
+        }
     }
 
     /**

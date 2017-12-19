@@ -1,9 +1,10 @@
 package org.eclipse.smarthome.tools.docgenerator.models;
 
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
-import org.eclipse.smarthome.tools.docgenerator.data.ChannelGroupRefList;
-import org.eclipse.smarthome.tools.docgenerator.data.ChannelRefList;
 import org.eclipse.smarthome.tools.docgenerator.schemas.Property;
 import org.eclipse.smarthome.tools.docgenerator.schemas.ThingType;
 
@@ -15,6 +16,8 @@ public class Thing implements Model<ThingType> {
      * The instance from the XML parser.
      */
     private ThingType delegate;
+
+    private List<Channel> channels = null;
 
     /**
      * Default constructor.
@@ -84,26 +87,31 @@ public class Thing implements Model<ThingType> {
     /**
      * @return A list of channels.
      */
-    public ChannelRefList channels() {
-        ChannelRefList channelRefs = new ChannelRefList();
-        if (delegate.getChannels() != null) {
-            for (org.eclipse.smarthome.tools.docgenerator.schemas.Channel channel : delegate.getChannels()
-                    .getChannel()) {
-                channelRefs.put(channel);
+    public List<Channel> channels() {
+        if (this.channels == null) {
+            List<Channel> channels = new ArrayList<Channel>();
+            if (delegate.getChannels() != null) {
+                for (org.eclipse.smarthome.tools.docgenerator.schemas.Channel channel : delegate.getChannels()
+                        .getChannel()) {
+                    Channel newChannel = new Channel(channel);
+                    channels.add(newChannel);
+                }
             }
+            this.channels = channels;
         }
-        return channelRefs;
+        return this.channels;
     }
 
     /**
      * @return A list of channel groups.
      */
-    public ChannelGroupRefList channelGroups() {
-        ChannelGroupRefList channels = new ChannelGroupRefList();
+    public List<org.eclipse.smarthome.tools.docgenerator.schemas.ChannelGroup> channelGroups() {
+        List<org.eclipse.smarthome.tools.docgenerator.schemas.ChannelGroup> channels = new ArrayList<org.eclipse.smarthome.tools.docgenerator.schemas.ChannelGroup>();
         if (delegate.getChannelGroups() != null) {
-            // for (ChannelGroup group : delegate.getChannelGroups().getChannelGroup()) {
-            // channels.put(group);
-            // }
+            for (org.eclipse.smarthome.tools.docgenerator.schemas.ChannelGroup group : delegate.getChannelGroups()
+                    .getChannelGroup()) {
+                channels.add(group);
+            }
         }
         return channels;
     }
@@ -111,7 +119,7 @@ public class Thing implements Model<ThingType> {
     /**
      * @return The configuration for the thing.
      */
-    public ConfigDescription configDescriptions() {
+    public ConfigDescription configDescription() {
         if (delegate.getConfigDescription() != null) {
             return new ConfigDescription(delegate.getConfigDescription());
         } else {
@@ -119,20 +127,19 @@ public class Thing implements Model<ThingType> {
         }
     }
 
-    public String getParameter(String parameter) {
-        org.eclipse.smarthome.tools.docgenerator.schemas.Properties properties = delegate.getProperties();
-        if (properties == null) {
-            return "XXX";
+    public Map<String, String> property() {
+        if (delegate.getProperties() == null) {
+            return null;
         }
+        org.eclipse.smarthome.tools.docgenerator.schemas.Properties properties = delegate.getProperties();
 
+        Map<String, String> propertiesMap = new HashMap<String, String>();
         List<Property> propertyList = properties.getProperty();
         for (Property property : propertyList) {
-            if (property.getName().equals(parameter)) {
-                return property.getValue();
-            }
+            propertiesMap.put(property.getName(), property.getValue());
         }
 
-        return "YYY";
+        return propertiesMap;
     }
 
 }

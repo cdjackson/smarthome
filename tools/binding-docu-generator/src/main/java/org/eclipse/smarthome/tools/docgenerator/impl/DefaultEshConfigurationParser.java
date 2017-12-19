@@ -1,16 +1,24 @@
 package org.eclipse.smarthome.tools.docgenerator.impl;
 
-import org.apache.maven.plugin.logging.Log;
-import org.eclipse.smarthome.tools.docgenerator.EshConfigurationParser;
-import org.eclipse.smarthome.tools.docgenerator.ParserException;
-import org.eclipse.smarthome.tools.docgenerator.models.ConfigurationParseResult;
-import org.eclipse.smarthome.tools.docgenerator.schemas.*;
-import org.eclipse.smarthome.tools.docgenerator.util.XmlUtils;
-
 import java.io.File;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.List;
+
+import org.apache.maven.plugin.logging.Log;
+import org.eclipse.smarthome.tools.docgenerator.EshConfigurationParser;
+import org.eclipse.smarthome.tools.docgenerator.ParserException;
+import org.eclipse.smarthome.tools.docgenerator.models.ConfigurationParseResult;
+import org.eclipse.smarthome.tools.docgenerator.models.Thing;
+import org.eclipse.smarthome.tools.docgenerator.schemas.Binding;
+import org.eclipse.smarthome.tools.docgenerator.schemas.BridgeType;
+import org.eclipse.smarthome.tools.docgenerator.schemas.ChannelGroupType;
+import org.eclipse.smarthome.tools.docgenerator.schemas.ChannelType;
+import org.eclipse.smarthome.tools.docgenerator.schemas.ConfigDescription;
+import org.eclipse.smarthome.tools.docgenerator.schemas.ConfigDescriptions;
+import org.eclipse.smarthome.tools.docgenerator.schemas.ThingDescriptions;
+import org.eclipse.smarthome.tools.docgenerator.schemas.ThingType;
+import org.eclipse.smarthome.tools.docgenerator.util.XmlUtils;
 
 /**
  * Default implementation for a {@link EshConfigurationParser}.
@@ -65,6 +73,23 @@ public class DefaultEshConfigurationParser implements EshConfigurationParser {
             }
         });
 
+        // Do some consolidation
+        for (Thing thingType : result.getThings()) {
+            for (org.eclipse.smarthome.tools.docgenerator.models.Channel channel : thingType.channels()) {
+                boolean set = false;
+                for (ChannelType channelType : result.getChannels()) {
+                    if (channelType.getId().equals(channel.typeId())) {
+                        channel.setChannelType(channelType);
+                        set = true;
+                        break;
+                    }
+                }
+                if (!set) {
+                    System.out.println("Not set channel type " + channel.id());
+                }
+            }
+        }
+
         return result;
     }
 
@@ -81,13 +106,13 @@ public class DefaultEshConfigurationParser implements EshConfigurationParser {
         List<Object> objs = thingDesc.getThingTypeOrBridgeTypeOrChannelType();
         for (Object obj : objs) {
             if (obj instanceof ChannelType) {
-                result.putChannel((ChannelType) obj);
+                result.putChannelType((ChannelType) obj);
             } else if (obj instanceof BridgeType) {
                 result.putBridge((BridgeType) obj);
             } else if (obj instanceof ChannelGroupType) {
                 result.putChannelGroup((ChannelGroupType) obj);
             } else if (obj instanceof ThingType) {
-                result.putThing((ThingType) obj);
+                result.putThing(new Thing((ThingType) obj));
             } else {
                 logger.warn("Unsupported class. " + obj.getClass().toString());
             }
