@@ -17,7 +17,7 @@ import org.junit.Before;
 import org.junit.Ignore;
 import org.junit.Test;
 
-public class MustacheDocumentationGeneratorTest {
+public class HandlebarsDocumentationGeneratorTest {
 
     private static final String templatesTarget = "target/testTemplates/";
 
@@ -35,13 +35,13 @@ public class MustacheDocumentationGeneratorTest {
         Path partialsDir = Paths.get("src/test/resources/templates/");
         Path readmeTemplate = Paths.get("src/test/resources/templates/README.md.mustache");
 
-        DocumentationGenerator generator = new MustacheDocumentationGenerator(log);
+        DocumentationGenerator generator = new HandlebarsDocumentationGenerator(log);
         EshConfigurationParser parser = new DefaultEshConfigurationParser(log);
         ConfigurationParseResult result = parser.parseEshConfiguration(eshPath);
 
         Path readme = Files.createTempFile("esh", ".md");
 
-        generator.generateDocumentation(result, readme, partialsDir, readmeTemplate);
+        generator.generateDocumentation(result, readme, partialsDir, readmeTemplate, null);
 
         assertTrue(Files.exists(readme));
         assertTrue(Files.isRegularFile(readme));

@@ -5,7 +5,7 @@ import java.nio.file.Paths;
 import org.apache.maven.plugin.logging.Log;
 import org.apache.maven.plugin.logging.SystemStreamLog;
 import org.eclipse.smarthome.tools.docgenerator.impl.DefaultEshConfigurationParser;
-import org.eclipse.smarthome.tools.docgenerator.impl.MustacheDocumentationGenerator;
+import org.eclipse.smarthome.tools.docgenerator.impl.HandlebarsDocumentationGenerator;
 import org.eclipse.smarthome.tools.docgenerator.models.ConfigurationParseResult;
 import org.eclipse.smarthome.tools.docgenerator.models.Thing;
 
@@ -39,7 +39,7 @@ public class MainForTest {
         ConfigurationParseResult eshConfiguration;
         try {
             EshConfigurationParser configurationParser = new DefaultEshConfigurationParser(logger);
-            DocumentationGenerator generator = new MustacheDocumentationGenerator(logger);
+            DocumentationGenerator generator = new HandlebarsDocumentationGenerator(logger);
 
             eshConfiguration = configurationParser.parseEshConfiguration(Paths.get(eshDir));
 
@@ -50,6 +50,8 @@ public class MainForTest {
                     Paths.get(partialsDir), Paths.get(templateThings), null);
 
             for (Thing thing : eshConfiguration.getThings()) {
+                System.out.println("Exporting thing " + thing.id());
+
                 generator.generateDocumentation(eshConfiguration, Paths.get(outputFile + "/doc/" + thing.id() + ".md"),
                         Paths.get(partialsDir), Paths.get(templateThing), thing);
             }

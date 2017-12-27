@@ -1,10 +1,10 @@
 package org.eclipse.smarthome.tools.docgenerator.models;
 
-public class Option implements Model<org.eclipse.smarthome.tools.docgenerator.schemas.Option> {
+public class Option implements Model<org.eclipse.smarthome.tools.docgenerator.schemas.OptionsType.Option> {
     /**
      * The original instance from the XML parser.
      */
-    private org.eclipse.smarthome.tools.docgenerator.schemas.Option delegate;
+    private org.eclipse.smarthome.tools.docgenerator.schemas.OptionsType.Option delegate;
 
     /**
      * Default constructor.
@@ -17,7 +17,7 @@ public class Option implements Model<org.eclipse.smarthome.tools.docgenerator.sc
      *
      * @param delegate The instance from the XML parser.
      */
-    public Option(org.eclipse.smarthome.tools.docgenerator.schemas.Option delegate) {
+    public Option(org.eclipse.smarthome.tools.docgenerator.schemas.OptionsType.Option delegate) {
         this.delegate = delegate;
     }
 
@@ -25,7 +25,7 @@ public class Option implements Model<org.eclipse.smarthome.tools.docgenerator.sc
      * @return The original instance from the XML parser.
      */
     @Override
-    public org.eclipse.smarthome.tools.docgenerator.schemas.Option getRealImpl() {
+    public org.eclipse.smarthome.tools.docgenerator.schemas.OptionsType.Option getRealImpl() {
         return delegate;
     }
 
@@ -35,7 +35,7 @@ public class Option implements Model<org.eclipse.smarthome.tools.docgenerator.sc
      * @param option The instance from the XML parser.
      */
     @Override
-    public void setModel(org.eclipse.smarthome.tools.docgenerator.schemas.Option option) {
+    public void setModel(org.eclipse.smarthome.tools.docgenerator.schemas.OptionsType.Option option) {
         this.delegate = option;
     }
 
@@ -43,6 +43,10 @@ public class Option implements Model<org.eclipse.smarthome.tools.docgenerator.sc
      * @return Value of the option.
      */
     public String value() {
+        return delegate.getValueToFixError3();
+    }
+
+    public String label() {
         return delegate.getValue();
     }
 }

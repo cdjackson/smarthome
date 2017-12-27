@@ -10,8 +10,7 @@ You can take a look at a generated readme [here](README-example.md).
 
 ## Customizing the README
 
-If you want to customize the generated readme, create a file named `README.md.mustache` in the directory of your binding. This template is using the
-mustache template language. You can use the following partials to include generated documentation:
+If you want to customize the generated readme, create a file named `README.md.mustache` in the directory of your binding. This template is using the handlebars template language. You can use the following partials to include generated documentation:
 
 * `{{binding.name}}` - Name of the binding
 
@@ -28,6 +27,11 @@ mustache template language. You can use the following partials to include genera
 * `{{>partials/channelGroups}}` - Channel groups from the ESH XML
 
 * `{{>partials/channels}}` - Channels from the ESH XML
+
+## Mustache Helpers
+
+* `{{html2md context}}` - Converts any HTML in context into markdown
+* `{{ellipsis context length}}` - Takes the first line of context only. If the line is longer than the optional `length` bytes then an ellipsis will be added (ie ...) to the end of the line.
 
 ## Original author
 

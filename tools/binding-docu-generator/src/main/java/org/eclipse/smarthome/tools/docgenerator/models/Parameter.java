@@ -81,7 +81,7 @@ public class Parameter implements Model<org.eclipse.smarthome.tools.docgenerator
     }
 
     /**
-     * Wrapper method for mustache.
+     * Wrapper method for handlebars.
      *
      * @return "True" if it is readonly, "False" if not.
      */
@@ -131,22 +131,29 @@ public class Parameter implements Model<org.eclipse.smarthome.tools.docgenerator
         return delegate.getStep();
     }
 
+    public Boolean limitToOptions() {
+        if (delegate.isLimitToOptions() == null && delegate.getOptions() != null) {
+            return true;
+        }
+        return delegate.isLimitToOptions();
+    }
+
     /**
      * @return A list of options.
      */
-    public List<org.eclipse.smarthome.tools.docgenerator.schemas.OptionsType.Option> options() {
-        List<org.eclipse.smarthome.tools.docgenerator.schemas.OptionsType.Option> optionList = new ArrayList<org.eclipse.smarthome.tools.docgenerator.schemas.OptionsType.Option>();
+    public List<org.eclipse.smarthome.tools.docgenerator.models.Option> options() {
+        List<org.eclipse.smarthome.tools.docgenerator.models.Option> optionList = new ArrayList<org.eclipse.smarthome.tools.docgenerator.models.Option>();
         if (delegate.getOptions() != null) {
             for (org.eclipse.smarthome.tools.docgenerator.schemas.OptionsType.Option option : delegate.getOptions()
                     .getOption()) {
-                optionList.add(option);
+                optionList.add(new org.eclipse.smarthome.tools.docgenerator.models.Option(option));
             }
         }
         return optionList;
     }
 
     /**
-     * @return The parameter of the parameter.
+     * @return The pattern of the parameter.
      */
     public String pattern() {
         return delegate.getPattern();

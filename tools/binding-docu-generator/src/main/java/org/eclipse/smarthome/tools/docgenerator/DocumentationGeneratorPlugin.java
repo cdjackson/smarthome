@@ -9,7 +9,7 @@ import org.apache.maven.plugins.annotations.LifecyclePhase;
 import org.apache.maven.plugins.annotations.Mojo;
 import org.apache.maven.plugins.annotations.Parameter;
 import org.eclipse.smarthome.tools.docgenerator.impl.DefaultEshConfigurationParser;
-import org.eclipse.smarthome.tools.docgenerator.impl.MustacheDocumentationGenerator;
+import org.eclipse.smarthome.tools.docgenerator.impl.HandlebarsDocumentationGenerator;
 import org.eclipse.smarthome.tools.docgenerator.models.ConfigurationParseResult;
 
 /**
@@ -54,11 +54,11 @@ public class DocumentationGeneratorPlugin extends AbstractMojo {
             BasicConfigurator.configure();
 
             EshConfigurationParser configurationParser = new DefaultEshConfigurationParser(getLog());
-            DocumentationGenerator generator = new MustacheDocumentationGenerator(getLog());
+            DocumentationGenerator generator = new HandlebarsDocumentationGenerator(getLog());
 
             ConfigurationParseResult eshConfiguration = configurationParser.parseEshConfiguration(Paths.get(eshDir));
             generator.generateDocumentation(eshConfiguration, Paths.get(outputFile), Paths.get(partialsDir),
-                    Paths.get(template));
+                    Paths.get(template), null);
         } catch (Exception e) {
             throw new MojoExecutionException("Unable to generate documentation.", e);
         }

@@ -52,10 +52,10 @@ public class ConfigDescription implements Model<org.eclipse.smarthome.tools.docg
     /**
      * @return A list of parameters.
      */
-    public List<org.eclipse.smarthome.tools.docgenerator.schemas.Parameter> parameter() {
-        List<org.eclipse.smarthome.tools.docgenerator.schemas.Parameter> parameterList = new ArrayList<org.eclipse.smarthome.tools.docgenerator.schemas.Parameter>();
+    public List<org.eclipse.smarthome.tools.docgenerator.models.Parameter> parameter() {
+        List<org.eclipse.smarthome.tools.docgenerator.models.Parameter> parameterList = new ArrayList<org.eclipse.smarthome.tools.docgenerator.models.Parameter>();
         for (org.eclipse.smarthome.tools.docgenerator.schemas.Parameter param : delegate.getParameter()) {
-            parameterList.add(param);
+            parameterList.add(new org.eclipse.smarthome.tools.docgenerator.models.Parameter(param));
         }
         return parameterList;
     }
