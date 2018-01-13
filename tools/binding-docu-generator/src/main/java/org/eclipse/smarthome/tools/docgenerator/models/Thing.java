@@ -74,6 +74,13 @@ public class Thing implements Model<ThingType> {
     }
 
     /**
+     * @return the thing category
+     */
+    public String category() {
+        return delegate.getCategory();
+    }
+
+    /**
      * @return Configuration reference of the thing.
      */
     public String configDescriptionRef() {

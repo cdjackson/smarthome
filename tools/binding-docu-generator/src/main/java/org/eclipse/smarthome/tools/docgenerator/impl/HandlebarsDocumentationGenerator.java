@@ -99,10 +99,49 @@ public class HandlebarsDocumentationGenerator implements DocumentationGenerator 
                 if (context == null) {
                     return "";
                 }
+
+                String indent = "";
+                if (options.hash.containsKey("indent")) {
+                    indent = (String) options.hash.get("indent");
+                }
+                // for(int option:options.params) {
+
+                // }
+                // if (options.params.length > 0) {
+                /// lineLength = (int) options.params[0];
+                // }
+
                 String markdown = converter.convert(context);
                 if (markdown == null) {
                     markdown = "";
                 }
+                String[] lines = markdown.split("\n");
+                // List<String> linesOut = new ArrayList<String>();
+                StringBuilder builder = new StringBuilder();
+                for (String line : lines) {
+                    boolean found = false;
+                    for (int cnt = 1; cnt < 5; cnt++) {
+                        String indentString = "";
+                        for (int indentCnt = 0; indentCnt < cnt; indentCnt++) {
+                            indentString = indentString + "#";
+                        }
+                        if (line.startsWith(indentString + " ") && line.endsWith(indentString)) {
+                            builder.append(indent);
+                            builder.append(indentString);
+                            builder.append(' ');
+                            builder.append(
+                                    line.substring(indentString.length() + 1, line.length() - indentString.length()));
+                            found = true;
+                            break;
+                        }
+                    }
+
+                    if (!found) {
+                        builder.append(line);
+                    }
+                    builder.append('\n');
+                }
+                markdown = builder.toString();
                 return new Handlebars.SafeString(markdown);
             }
         });
