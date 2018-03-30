@@ -452,7 +452,11 @@ Bridge and *Thing* descriptions must be placed as XML file(s) (with the ending `
   <tr><td>category</td><td>Category this bridge/<i>Thing</i> belongs to, see <a href="../../concepts/categories.html">categories</a>) (optional).</td></tr>
   <tr><td>channels</td><td>The channels the bridge/<i>Thing</i> provides (optional).</td></tr>
   <tr><td>channel.id</td><td>An identifier of the channel the bridge/<i>Thing</i> provides (mandatory).</td></tr>
-  <tr><td>channel.typeId</td><td>An identifier of the channel type definition the bridge/<i>Thing</i> provides (mandatory).</td></tr>
+<tr><td>channel.typeId</td><td>An identifier of the channel type definition the bridge/<i>Thing</i> provides (mandatory).</td></tr>
+<tr><td>channel.label</td><td>Set the channel label. If exists, overrides the label in the channel-type (optional).</td></tr>
+<tr><td>channel.description</td><td>Set the channel description. If exists, overrides the description in the channel-type (optional).</td></tr>
+<tr><td>channel.properties</td><td>Sets properties for the channel. (optional).</td></tr>
+
   <tr><td>label</td><td>A human-readable label for the channel (optional).</td></tr>
   <tr><td>description</td><td>A human-readable description for the channel (optional).</td></tr>
   <tr><td>channel-groups</td><td>The channel groups defining the channels the bridge/<i>Thing</i> provides (optional).</td></tr>
